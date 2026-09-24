@@ -1,0 +1,104 @@
+# 菜名、小吃与饮品。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@3
+宫保鸡丁 gong bao ji ding
+鱼香肉丝 yu xiang rou si
+麻婆豆腐 ma po dou fu
+红烧肉 hong shao rou
+糖醋排骨 tang cu pai gu
+酸菜鱼 suan cai yu
+水煮鱼 shui zhu yu
+水煮肉片 shui zhu rou pian
+回锅肉 hui guo rou
+小炒肉 xiao chao rou
+农家小炒肉 nong jia xiao chao rou
+番茄炒蛋 fan qie chao dan
+西红柿炒鸡蛋 xi hong shi chao ji dan
+青椒肉丝 qing jiao rou si
+土豆丝 tu dou si
+酸辣土豆丝 suan la tu dou si
+蛋炒饭 dan chao fan
+扬州炒饭 yang zhou chao fan
+牛肉面 niu rou mian
+兰州拉面 lan zhou la mian
+拉面 la mian
+热干面 re gan mian
+担担面 dan dan mian
+重庆小面 chong qing xiao mian
+酸辣粉 suan la fen
+过桥米线 guo qiao mi xian
+桂林米粉 gui lin mi fen
+肠粉 chang fen
+小笼包 xiao long bao
+生煎 sheng jian
+锅贴 guo tie
+馄饨 hun tun
+抄手 chao shou
+汤圆 tang yuan
+粽子 zong zi
+月饼 yue bing
+年糕 nian gao
+糖葫芦 tang hu lu
+冰糖葫芦 bing tang hu lu
+臭豆腐 chou dou fu
+烤冷面 kao leng mian
+手抓饼 shou zhua bing
+鸡蛋灌饼 ji dan guan bing
+胡辣汤 hu la tang
+羊肉串 yang rou chuan
+烤串 kao chuan
+撸串 lu chuan
+串串香 chuan chuan xiang
+冒菜 mao cai
+钵钵鸡 bo bo ji
+麻辣香锅 ma la xiang guo
+干锅 gan guo
+黄焖鸡 huang men ji
+黄焖鸡米饭 huang men ji mi fan
+沙县小吃 sha xian xiao chi
+酸菜 suan cai
+麻辣 ma la
+香辣 xiang la
+清汤 qing tang
+番茄锅 fan qie guo
+鸳鸯锅 yuan yang guo
+牛油火锅 niu you huo guo
+自助火锅 zi zhu huo guo
+烤肉 kao rou
+韩式烤肉 han shi kao rou
+日料 ri liao
+西餐 xi can
+中餐 zhong can
+快餐 kuai can
+轻食 qing shi
+减脂餐 jian zhi can
+便利店便当 bian li dian bian dang
+珍珠奶茶 zhen zhu nai cha
+芝士奶盖 zhi shi nai gai
+奶盖 nai gai
+杨枝甘露 yang zhi gan lu
+椰奶 ye nai
+生椰拿铁 sheng ye na tie
+抹茶 mo cha
+抹茶拿铁 mo cha na tie
+美式咖啡 mei shi ka fei
+卡布奇诺 ka bu qi nuo
+摩卡 mo ka
+燕麦奶 yan mai nai
+气泡水 qi pao shui
+柠檬水 ning meng shui
+柠檬茶 ning meng cha
+水果茶 shui guo cha
+果茶 guo cha
+冰淇淋 bing qi lin
+雪糕 xue gao
+奶昔 nai xi
+酸梅汤 suan mei tang
+豆奶 dou nai
+凉茶 liang cha
+乌龙茶 wu long cha
+绿茶 lv cha
+红茶 hong cha
+花茶 hua cha
+菊花茶 ju hua cha
+蜂蜜水 feng mi shui
+早午餐 zao wu can

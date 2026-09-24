@@ -1,0 +1,72 @@
+# 生活服务、证件与消费权益。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@3
+共享充电宝 gong xiang chong dian bao
+共享汽车 gong xiang qi che
+地铁卡 di tie ka
+交通卡 jiao tong ka
+公交卡 gong jiao ka
+乘车码 cheng che ma
+电子发票 dian zi fa piao
+电子合同 dian zi he tong
+电子签名 dian zi qian ming
+医保卡 yi bao ka
+社保卡 she bao ka
+电子社保卡 dian zi she bao ka
+身份证号 shen fen zheng hao
+手机号码 shou ji hao ma
+银行卡号 yin hang ka hao
+寄件 ji jian
+取件 qu jian
+自提 zi ti
+自提点 zi ti dian
+门店 men dian
+到店 dao dian
+到店自取 dao dian zi qu
+闪送 shan song
+跑腿费 pao tui fei
+配送费 pei song fei
+起送价 qi song jia
+满减券 man jian quan
+会员日 hui yuan ri
+积分 ji fen
+积分兑换 ji fen dui huan
+签到 qian dao
+每日签到 mei ri qian dao
+领券 ling quan
+领红包 ling hong bao
+新人优惠 xin ren you hui
+新用户 xin yong hu
+老用户 lao yong hu
+会员卡 hui yuan ka
+储值卡 chu zhi ka
+购物卡 gou wu ka
+礼品卡 li pin ka
+兑换码 dui huan ma
+优惠码 you hui ma
+邀请码 yao qing ma
+邀请好友 yao qing hao you
+砍一刀 kan yi dao
+助力 zhu li
+拼团 pin tuan
+开团 kai tuan
+团长 tuan zhang
+社区团购 she qu tuan gou
+预约取号 yu yue qu hao
+线上预约 xian shang yu yue
+营业时间 ying ye shi jian
+营业中 ying ye zhong
+打烊 da yang
+停业 ting ye
+暂停营业 zan ting ying ye
+客服电话 ke fu dian hua
+投诉电话 tou su dian hua
+售后电话 shou hou dian hua
+上门取件 shang men qu jian
+上门维修 shang men wei xiu
+上门安装 shang men an zhuang
+预约上门 yu yue shang men
+保修期 bao xiu qi
+延保 yan bao
+以旧换新 yi jiu huan xin
+价保 jia bao
+退差价 tui cha jia

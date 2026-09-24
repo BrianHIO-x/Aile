@@ -1,0 +1,137 @@
+# 日常动作与常用动宾搭配。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@4
+发消息 fa xiao xi
+回消息 hui xiao xi
+发给你 fa gei ni
+发给我 fa gei wo
+打电话 da dian hua
+接电话 jie dian hua
+挂电话 gua dian hua
+回电话 hui dian hua
+打个电话 da ge dian hua
+给你打电话 gei ni da dian hua
+告诉你 gao su ni
+告诉我 gao su wo
+问一下 wen yi xia
+看一下 kan yi xia
+试一下 shi yi xia
+查一下 cha yi xia
+说一下 shuo yi xia
+想一下 xiang yi xia
+改一下 gai yi xia
+弄一下 nong yi xia
+帮我看看 bang wo kan kan
+帮个忙 bang ge mang
+一起去 yi qi qu
+一起吃饭 yi qi chi fan
+吃个饭 chi ge fan
+喝咖啡 he ka fei
+喝奶茶 he nai cha
+出去玩 chu qu wan
+到家 dao jia
+出门 chu men
+下楼 xia lou
+上楼 shang lou
+起床 qi chuang
+睡觉 shui jiao
+洗澡 xi zao
+做饭 zuo fan
+吃饭 chi fan
+刷牙 shua ya
+洗脸 xi lian
+化妆 hua zhuang
+换衣服 huan yi fu
+洗衣服 xi yi fu
+收拾 shou shi
+打扫卫生 da sao wei sheng
+拖地 tuo di
+遛狗 liu gou
+喂猫 wei mao
+接孩子 jie hai zi
+送孩子 song hai zi
+买菜 mai cai
+看电影 kan dian ying
+看电视 kan dian shi
+听歌 ting ge
+唱歌 chang ge
+打游戏 da you xi
+玩游戏 wan you xi
+逛街 guang jie
+购物 gou wu
+旅游 lv you
+出去旅游 chu qu lv you
+去上班 qu shang ban
+去上学 qu shang xue
+去医院 qu yi yuan
+去超市 qu chao shi
+去公司 qu gong si
+回公司 hui gong si
+在路上 zai lu shang
+在家 zai jia
+在公司 zai gong si
+在开会 zai kai hui
+在忙 zai mang
+先忙 xian mang
+你先忙 ni xian mang
+等你 deng ni
+等我 deng wo
+想你 xiang ni
+爱你 ai ni
+陪你 pei ni
+找你 zhao ni
+找我 zhao wo
+叫我 jiao wo
+接你 jie ni
+送你 song ni
+请你吃饭 qing ni chi fan
+约个时间 yue ge shi jian
+定个时间 ding ge shi jian
+@3
+加个微信 jia ge wei xin
+加微信 jia wei xin
+发朋友圈 fa peng you quan
+发个定位 fa ge ding wei
+发定位 fa ding wei
+发链接 fa lian jie
+发文件 fa wen jian
+发照片 fa zhao pian
+发视频 fa shi pin
+拍个照 pai ge zhao
+拍张照片 pai zhang zhao pian
+录个视频 lu ge shi pin
+截个图 jie ge tu
+扫个码 sao ge ma
+点个赞 dian ge zan
+转给你 zhuan gei ni
+转过去 zhuan guo qu
+充个电 chong ge dian
+充电 chong dian
+关一下 guan yi xia
+开一下 kai yi xia
+取一下 qu yi xia
+拿一下 na yi xia
+放一下 fang yi xia
+签个字 qian ge zi
+盖个章 gai ge zhang
+填一下 tian yi xia
+填表 tian biao
+交材料 jiao cai liao
+提交材料 ti jiao cai liao
+走一趟 zou yi tang
+跑一趟 pao yi tang
+顺便 shun bian
+顺路 shun lu
+路过 lu guo
+绕路 rao lu
+迟到 chi dao
+早退 zao tui
+请个假 qing ge jia
+调个休 tiao ge xiu
+加个班 jia ge ban
+开个会 kai ge hui
+补个觉 bu ge jiao
+睡个午觉 shui ge wu jiao
+午睡 wu shui
+熬个夜 ao ge ye
+散散步 san san bu
+锻炼身体 duan lian shen ti

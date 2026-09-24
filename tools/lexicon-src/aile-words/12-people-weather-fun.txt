@@ -1,0 +1,124 @@
+# 家人称呼、天气与文娱体育。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@4
+爸爸 ba ba
+妈妈 ma ma
+爸妈 ba ma
+老公 lao gong
+老婆 lao po
+媳妇 xi fu
+宝宝 bao bao
+宝贝 bao bei
+闺女 gui nv
+儿子 er zi
+女儿 nv er
+哥哥 ge ge
+姐姐 jie jie
+弟弟 di di
+妹妹 mei mei
+爷爷 ye ye
+奶奶 nai nai
+外公 wai gong
+外婆 wai po
+姥姥 lao lao
+姥爷 lao ye
+公公 gong gong
+婆婆 po po
+岳父 yue fu
+岳母 yue mu
+叔叔 shu shu
+阿姨 a yi
+舅舅 jiu jiu
+舅妈 jiu ma
+姑姑 gu gu
+小姨 xiao yi
+表哥 biao ge
+表姐 biao jie
+堂哥 tang ge
+闺蜜 gui mi
+兄弟 xiong di
+哥们 ge men
+对象 dui xiang
+男朋友 nan peng you
+女朋友 nv peng you
+前任 qian ren
+相亲 xiang qin
+结婚 jie hun
+婚礼 hun li
+婚纱照 hun sha zhao
+彩礼 cai li
+份子钱 fen zi qian
+喜酒 xi jiu
+满月酒 man yue jiu
+天气预报 tian qi yu bao
+下雨 xia yu
+下雪 xia xue
+晴天 qing tian
+阴天 yin tian
+多云 duo yun
+雷阵雨 lei zhen yu
+暴雨 bao yu
+台风 tai feng
+雾霾 wu mai
+空气质量 kong qi zhi liang
+气温 qi wen
+降温 jiang wen
+升温 sheng wen
+高温 gao wen
+零下 ling xia
+刮风 gua feng
+大风 da feng
+紫外线 zi wai xian
+防晒 fang shai
+防晒霜 fang shai shuang
+电影院 dian ying yuan
+电视剧 dian shi ju
+综艺 zong yi
+综艺节目 zong yi jie mu
+纪录片 ji lu pian
+动漫 dong man
+动画片 dong hua pian
+演唱会 yan chang hui
+音乐节 yin yue jie
+话剧 hua ju
+票房 piao fang
+上映 shang ying
+预告片 yu gao pian
+主演 zhu yan
+男主 nan zhu
+女主 nv zhu
+明星 ming xing
+偶像 ou xiang
+追星 zhui xing
+球赛 qiu sai
+足球 zu qiu
+篮球 lan qiu
+羽毛球 yu mao qiu
+乒乓球 ping pang qiu
+网球 wang qiu
+游泳 you yong
+世界杯 shi jie bei
+奥运会 ao yun hui
+亚运会 ya yun hui
+冠军 guan jun
+决赛 jue sai
+半决赛 ban jue sai
+比分 bi fen
+进球 jin qiu
+加时赛 jia shi sai
+点球 dian qiu
+@3
+王者荣耀 wang zhe rong yao
+和平精英 he ping jing ying
+原神 yuan shen
+英雄联盟 ying xiong lian meng
+我的世界 wo de shi jie
+开心消消乐 kai xin xiao xiao le
+斗地主 dou di zhu
+打麻将 da ma jiang
+麻将 ma jiang
+象棋 xiang qi
+围棋 wei qi
+剧本杀 ju ben sha
+密室逃脱 mi shi tao tuo
+桌游 zhuo you
+狼人杀 lang ren sha

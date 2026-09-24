@@ -1,0 +1,71 @@
+# 产品研发与办公协作。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@3
+需求文档 xu qiu wen dang
+产品需求 chan pin xu qiu
+原型图 yuan xing tu
+设计稿 she ji gao
+交互 jiao hu
+交互设计 jiao hu she ji
+视觉设计 shi jue she ji
+埋点 mai dian
+灰度 hui du
+灰度发布 hui du fa bu
+回滚 hui gun
+发版 fa ban
+提测 ti ce
+验收 yan shou
+上线时间 shang xian shi jian
+线上问题 xian shang wen ti
+线上故障 xian shang gu zhang
+修复 xiu fu
+工单 gong dan
+提工单 ti gong dan
+排查 pai cha
+排查问题 pai cha wen ti
+定位问题 ding wei wen ti
+复现 fu xian
+日志 ri zhi
+报错 bao cuo
+崩溃日志 beng kui ri zhi
+版本发布 ban ben fa bu
+代码评审 dai ma ping shen
+合并代码 he bing dai ma
+分支 fen zhi
+主分支 zhu fen zhi
+提交记录 ti jiao ji lu
+单元测试 dan yuan ce shi
+自动化测试 zi dong hua ce shi
+性能优化 xing neng you hua
+内存泄漏 nei cun xie lou
+兼容性 jian rong xing
+适配 shi pei
+机型适配 ji xing shi pei
+用户反馈 yong hu fan kui
+意见反馈 yi jian fan kui
+问题反馈 wen ti fan kui
+迭代 die dai
+版本迭代 ban ben die dai
+技术方案 ji shu fang an
+技术评审 ji shu ping shen
+方案评审 fang an ping shen
+需求评审 xu qiu ping shen
+项目排期 xiang mu pai qi
+项目进度 xiang mu jin du
+项目周报 xiang mu zhou bao
+项目复盘 xiang mu fu pan
+项目立项 xiang mu li xiang
+预算 yu suan
+成本 cheng ben
+利润 li run
+营收 ying shou
+增长 zeng zhang
+用户增长 yong hu zeng zhang
+日活 ri huo
+月活 yue huo
+转化率 zhuan hua lv
+留存 liu cun
+留存率 liu cun lv
+复购率 fu gou lv
+客单价 ke dan jia
+私域 si yu
+公域 gong yu

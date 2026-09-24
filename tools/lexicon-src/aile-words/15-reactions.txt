@@ -1,0 +1,70 @@
+# 聊天语气与表情化的说法。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@3
+哈哈哈哈 ha ha ha ha
+呜呜 wu wu
+呜呜呜 wu wu wu
+嘤嘤嘤 ying ying ying
+啊啊啊 a a a
+哇塞 wa sai
+我去 wo qu
+天呐 tian na
+妈呀 ma ya
+我的妈呀 wo de ma ya
+牛啊 niu a
+厉害啊 li hai a
+好家伙 hao jia huo
+救命 jiu ming
+救命啊 jiu ming a
+哭死 ku si
+笑哭 xiao ku
+捂脸 wu lian
+狗头 gou tou
+哈喽 ha lou
+拜拜啦 bai bai la
+晚安啦 wan an la
+么么哒 me me da
+抱抱 bao bao
+亲亲 qin qin
+摸摸头 mo mo tou
+比心 bi xin
+冲鸭 chong ya
+冲冲冲 chong chong chong
+加油鸭 jia you ya
+收到收到 shou dao shou dao
+好的好的 hao de hao de
+谢谢谢谢 xie xie xie xie
+对对对 dui dui dui
+是的是的 shi de shi de
+嗯嗯嗯 en en en
+行行行 xing xing xing
+好嘞好嘞 hao lei hao lei
+可以可以 ke yi ke yi
+没事没事 mei shi mei shi
+不用不用 bu yong bu yong
+好好好 hao hao hao
+来了来了 lai le lai le
+到了到了 dao le dao le
+真的是 zhen de shi
+真是的 zhen shi de
+服了你了 fu le ni le
+你真行 ni zhen xing
+太可爱了 tai ke ai le
+好可爱 hao ke ai
+好看 hao kan
+太好看了 tai hao kan le
+好好吃 hao hao chi
+太好吃了 tai hao chi le
+好好笑 hao hao xiao
+太好笑了 tai hao xiao le
+绝了绝了 jue le jue le
+爱了爱了 ai le ai le
+笑死了 xiao si le
+好气哦 hao qi o
+气死我了 qi si wo le
+吓死我了 xia si wo le
+急死了 ji si le
+心疼 xin teng
+好心疼 hao xin teng
+想哭 xiang ku
+开心死了 kai xin si le
+羡慕死了 xian mu si le

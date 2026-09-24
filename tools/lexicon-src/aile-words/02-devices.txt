@@ -1,0 +1,235 @@
+# 手机、平板、电脑与科技词汇。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@5
+平板 ping ban
+平板电脑 ping ban dian nao
+笔记本电脑 bi ji ben dian nao
+充电器 chong dian qi
+充电宝 chong dian bao
+数据线 shu ju xian
+蓝牙耳机 lan ya er ji
+输入法 shu ru fa
+@4
+流量 liu liang
+热点 re dian
+无线网 wu xian wang
+手机壳 shou ji ke
+钢化膜 gang hua mo
+手机膜 shou ji mo
+贴膜 tie mo
+耳机 er ji
+有线耳机 you xian er ji
+降噪耳机 jiang zao er ji
+充电线 chong dian xian
+充电头 chong dian tou
+快充 kuai chong
+无线充电 wu xian chong dian
+充满电 chong man dian
+电量 dian liang
+低电量 di dian liang
+省电 sheng dian
+省电模式 sheng dian mo shi
+关机 guan ji
+开机 kai ji
+重启 chong qi
+死机 si ji
+黑屏 hei ping
+白屏 bai ping
+花屏 hua ping
+碎屏 sui ping
+屏幕 ping mu
+屏幕截图 ping mu jie tu
+横屏 heng ping
+竖屏 shu ping
+全屏 quan ping
+分屏 fen ping
+锁屏 suo ping
+解锁 jie suo
+屏保 ping bao
+壁纸 bi zhi
+桌面 zhuo mian
+图标 tu biao
+文件夹 wen jian jia
+通知栏 tong zhi lan
+状态栏 zhuang tai lan
+控制中心 kong zhi zhong xin
+系统设置 xi tong she zhi
+系统更新 xi tong geng xin
+系统升级 xi tong sheng ji
+版本号 ban ben hao
+新版本 xin ban ben
+旧版本 jiu ban ben
+升级 sheng ji
+更新 geng xin
+安装 an zhuang
+卸载 xie zai
+应用 ying yong
+应用市场 ying yong shi chang
+应用商店 ying yong shang dian
+软件 ruan jian
+小组件 xiao zu jian
+服务卡片 fu wu ka pian
+负一屏 fu yi ping
+智慧屏 zhi hui ping
+智能手表 zhi neng shou biao
+手环 shou huan
+蓝牙 lan ya
+连蓝牙 lian lan ya
+配对 pei dui
+投屏 tou ping
+无线投屏 wu xian tou ping
+遥控器 yao kong qi
+路由器 lu you qi
+宽带 kuan dai
+信号 xin hao
+没信号 mei xin hao
+移动数据 yi dong shu ju
+飞行模式 fei xing mo shi
+勿扰模式 wu rao mo shi
+深色模式 shen se mo shi
+夜间模式 ye jian mo shi
+护眼模式 hu yan mo shi
+存储空间 cun chu kong jian
+内存 nei cun
+运行内存 yun xing nei cun
+缓存 huan cun
+清理缓存 qing li huan cun
+清理内存 qing li nei cun
+备份 bei fen
+云备份 yun bei fen
+云空间 yun kong jian
+同步 tong bu
+恢复出厂设置 hui fu chu chang she zhi
+相册 xiang ce
+相机 xiang ji
+拍照 pai zhao
+自拍 zi pai
+录像 lu xiang
+录音 lu yin
+闹钟 nao zhong
+备忘录 bei wang lu
+计算器 ji suan qi
+手电筒 shou dian tong
+导航 dao hang
+定位 ding wei
+实时位置 shi shi wei zhi
+共享位置 gong xiang wei zhi
+指纹 zhi wen
+指纹解锁 zhi wen jie suo
+人脸识别 ren lian shi bie
+面部识别 mian bu shi bie
+打印机 da yin ji
+键盘 jian pan
+鼠标 shu biao
+触控板 chu kong ban
+触控笔 chu kong bi
+手写笔 shou xie bi
+语音输入 yu yin shu ru
+拼音输入 pin yin shu ru
+候选词 hou xuan ci
+联想词 lian xiang ci
+@3
+人工智能 ren gong zhi neng
+大模型 da mo xing
+算法 suan fa
+芯片 xin pian
+半导体 ban dao ti
+处理器 chu li qi
+显卡 xian ka
+内存条 nei cun tiao
+硬盘 ying pan
+固态硬盘 gu tai ying pan
+显示器 xian shi qi
+主机 zhu ji
+台式机 tai shi ji
+一体机 yi ti ji
+操作系统 cao zuo xi tong
+开源 kai yuan
+程序员 cheng xu yuan
+代码 dai ma
+写代码 xie dai ma
+编程 bian cheng
+开发者 kai fa zhe
+调试 tiao shi
+部署 bu shu
+服务器 fu wu qi
+数据库 shu ju ku
+云计算 yun ji suan
+云服务 yun fu wu
+大数据 da shu ju
+区块链 qu kuai lian
+物联网 wu lian wang
+元宇宙 yuan yu zhou
+虚拟现实 xu ni xian shi
+增强现实 zeng qiang xian shi
+机器人 ji qi ren
+无人机 wu ren ji
+自动驾驶 zi dong jia shi
+智能驾驶 zhi neng jia shi
+新能源 xin neng yuan
+新能源汽车 xin neng yuan qi che
+电动汽车 dian dong qi che
+电动车 dian dong che
+充电桩 chong dian zhuang
+智能家居 zhi neng jia ju
+扫地机器人 sao di ji qi ren
+折叠屏 zhe die ping
+曲面屏 qu mian ping
+高刷 gao shua
+刷新率 shua xin lv
+分辨率 fen bian lv
+像素 xiang su
+摄像头 she xiang tou
+前置摄像头 qian zhi she xiang tou
+后置摄像头 hou zhi she xiang tou
+续航 xu hang
+电池容量 dian chi rong liang
+散热 san re
+发烫 fa tang
+黑科技 hei ke ji
+隐私 yin si
+隐私政策 yin si zheng ce
+权限 quan xian
+授权 shou quan
+杀毒 sha du
+防火墙 fang huo qiang
+漏洞 lou dong
+补丁 bu ding
+黑客 hei ke
+诈骗 zha pian
+电信诈骗 dian xin zha pian
+网络诈骗 wang luo zha pian
+反诈 fan zha
+@2
+接口 jie kou
+前端 qian duan
+后端 hou duan
+客户端 ke hu duan
+服务端 fu wu duan
+移动端 yi dong duan
+网页版 wang ye ban
+电脑版 dian nao ban
+手机版 shou ji ban
+安卓 an zhuo
+苹果手机 ping guo shou ji
+华为手机 hua wei shou ji
+鸿蒙系统 hong meng xi tong
+开发工具 kai fa gong ju
+源代码 yuan dai ma
+数据结构 shu ju jie gou
+机器学习 ji qi xue xi
+深度学习 shen du xue xi
+神经网络 shen jing wang luo
+语音助手 yu yin zhu shou
+智能助手 zhi neng zhu shou
+智能音箱 zhi neng yin xiang
+蓝牙音箱 lan ya yin xiang
+音箱 yin xiang
+麦克风 mai ke feng
+摄像机 she xiang ji
+单反 dan fan
+运动相机 yun dong xiang ji
+游戏机 you xi ji
+手柄 shou bing
+电子书 dian zi shu
+阅读器 yue du qi
+电纸书 dian zhi shu

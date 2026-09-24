@@ -1,0 +1,41 @@
+# ---- DevEco Studio / hvigor 构建产物与缓存 ----
+**/build
+/.hvigor
+**/.preview
+**/.test
+.cxx
+/.clangd
+/.clang-format
+/.clang-tidy
+/.appanalyzer
+
+# ---- ohpm / npm 依赖 ----
+**/oh_modules
+**/node_modules
+
+# ---- 本机环境 ----
+# 记录本机 SDK 路径，由 DevEco Studio 自动生成
+/local.properties
+/.idea
+*.iml
+
+# ---- 签名材料：证书、密钥库与 Profile 一律不入库 ----
+*.p12
+*.p7b
+*.cer
+*.csr
+*.jks
+*.keystore
+
+# ---- 日志与崩溃记录 ----
+*.log
+hs_err_pid*
+
+# ---- 脚本缓存 ----
+__pycache__/
+*.pyc
+
+# ---- 系统文件 ----
+.DS_Store
+Thumbs.db
+desktop.ini

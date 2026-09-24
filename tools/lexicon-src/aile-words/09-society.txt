@@ -1,0 +1,69 @@
+# 社会生活与时事常用词。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@3
+疫情 yi qing
+居家办公 ju jia ban gong
+远程办公 yuan cheng ban gong
+线上 xian shang
+线下 xian xia
+线上线下 xian shang xian xia
+数字化 shu zi hua
+智能化 zhi neng hua
+信息化 xin xi hua
+碳中和 tan zhong he
+碳达峰 tan da feng
+低碳 di tan
+环保 huan bao
+乡村振兴 xiang cun zhen xing
+共同富裕 gong tong fu yu
+高质量发展 gao zhi liang fa zhan
+一带一路 yi dai yi lu
+粤港澳大湾区 yue gang ao da wan qu
+长三角 chang san jiao
+珠三角 zhu san jiao
+京津冀 jing jin ji
+新时代 xin shi dai
+志愿者 zhi yuan zhe
+公益 gong yi
+社区 she qu
+网格员 wang ge yuan
+快递小哥 kuai di xiao ge
+外卖小哥 wai mai xiao ge
+网络安全 wang luo an quan
+个人信息 ge ren xin xi
+个人隐私 ge ren yin si
+信息安全 xin xi an quan
+数据安全 shu ju an quan
+防沉迷 fang chen mi
+未成年人 wei cheng nian ren
+青少年模式 qing shao nian mo shi
+实名认证 shi ming ren zheng
+身份验证 shen fen yan zheng
+短信验证码 duan xin yan zheng ma
+手机验证码 shou ji yan zheng ma
+退休金 tui xiu jin
+养老金 yang lao jin
+养老院 yang lao yuan
+托儿所 tuo er suo
+婴儿车 ying er che
+儿童节 er tong jie
+母亲节 mu qin jie
+父亲节 fu qin jie
+教师节 jiao shi jie
+情人节 qing ren jie
+七夕 qi xi
+中秋节 zhong qiu jie
+端午节 duan wu jie
+元宵节 yuan xiao jie
+清明节 qing ming jie
+劳动节 lao dong jie
+国庆节 guo qing jie
+春节 chun jie
+除夕 chu xi
+年夜饭 nian ye fan
+压岁钱 ya sui qian
+拜年 bai nian
+春运 chun yun
+回老家 hui lao jia
+小长假 xiao chang jia
+黄金周 huang jin zhou
+调休上班 tiao xiu shang ban

@@ -1,0 +1,103 @@
+# 聊天里整块出现的常用短句。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+# 这些短句作为整体进入词库，整句输入时可以直接命中
+@3
+我在路上 wo zai lu shang
+马上就到 ma shang jiu dao
+你到哪了 ni dao na le
+到哪儿了 dao na er le
+你在哪 ni zai na
+你在哪里 ni zai na li
+在干嘛 zai gan ma
+干嘛呢 gan ma ne
+你在干嘛 ni zai gan ma
+吃饭了没 chi fan le mei
+睡了没 shui le mei
+要不然 yao bu ran
+不然的话 bu ran de hua
+这样的话 zhe yang de hua
+那样的话 na yang de hua
+有空的话 you kong de hua
+有时间的话 you shi jian de hua
+可以的话 ke yi de hua
+方便的话 fang bian de hua
+麻烦帮我 ma fan bang wo
+帮我一下 bang wo yi xia
+帮忙看看 bang mang kan kan
+怎么回事 zen me hui shi
+怎么样了 zen me yang le
+什么意思 shen me yi si
+什么情况 shen me qing kuang
+没什么 mei shen me
+没什么事 mei shen me shi
+没多久 mei duo jiu
+没多少 mei duo shao
+差一点 cha yi dian
+早知道 zao zhi dao
+说实话 shuo shi hua
+说真的 shuo zhen de
+讲真 jiang zhen
+其实吧 qi shi ba
+我跟你说 wo gen ni shuo
+跟你说 gen ni shuo
+你知道吗 ni zhi dao ma
+你看看 ni kan kan
+你试试 ni shi shi
+我试试 wo shi shi
+我看看 wo kan kan
+我想想 wo xiang xiang
+让我想想 rang wo xiang xiang
+我问问 wo wen wen
+我查查 wo cha cha
+我去看看 wo qu kan kan
+我知道了 wo zhi dao le
+我明白了 wo ming bai le
+我先去 wo xian qu
+我先睡了 wo xian shui le
+我先下了 wo xian xia le
+我回来了 wo hui lai le
+我出门了 wo chu men le
+我下班了 wo xia ban le
+我到家了 wo dao jia le
+我吃饭了 wo chi fan le
+你吃了吗 ni chi le ma
+你睡了吗 ni shui le ma
+你忙吗 ni mang ma
+你有空吗 ni you kong ma
+你方便吗 ni fang bian ma
+你觉得呢 ni jue de ne
+你觉得怎么样 ni jue de zen me yang
+怎么样 zen me yang
+还好吗 hai hao ma
+你还好吗 ni hai hao ma
+还在吗 hai zai ma
+还没 hai mei
+还没有 hai mei you
+还没到 hai mei dao
+还没好 hai mei hao
+快点 kuai dian
+快点儿 kuai dian er
+慢点 man dian
+小心点 xiao xin dian
+注意点 zhu yi dian
+多吃点 duo chi dian
+少喝点 shao he dian
+早点回来 zao dian hui lai
+路上小心 lu shang xiao xin
+到了说一声 dao le shuo yi sheng
+到了告诉我 dao le gao su wo
+有事打电话 you shi da dian hua
+有事找我 you shi zhao wo
+随时联系 sui shi lian xi
+保持联系 bao chi lian xi
+回头聊 hui tou liao
+晚点聊 wan dian liao
+下次再聊 xia ci zai liao
+改天再约 gai tian zai yue
+约起来 yue qi lai
+走吧 zou ba
+走了 zou le
+来吧 lai ba
+好呀 hao ya
+行呀 xing ya
+可以呀 ke yi ya
+没问题呀 mei wen ti ya

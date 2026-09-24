@@ -1,0 +1,15 @@
+# 词库文件按 UTF-16 码元偏移建立索引，换行必须保持 LF。
+# Windows 上开启 core.autocrlf 时若检出成 CRLF，每行多出一个字符，索引偏移会全部错位
+entry/src/main/resources/rawfile/lexicon/*.txt text eol=lf
+
+# AOSP 原始词库为 UTF-16 编码，构建脚本按字节数校验，保持原样
+tools/lexicon-src/rawdict_utf16_*.txt binary
+
+# 二进制资源
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.mp4 binary
+*.ttf binary
+*.hap binary

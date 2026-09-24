@@ -1,0 +1,203 @@
+# 聊天口语与祝福。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@5
+好的 hao de
+收到 shou dao
+没问题 mei wen ti
+谢谢你 xie xie ni
+不客气 bu ke qi
+没关系 mei guan xi
+不好意思 bu hao yi si
+辛苦了 xin ku le
+在吗 zai ma
+怎么了 zen me le
+哈哈 ha ha
+哈哈哈 ha ha ha
+嗯嗯 en en
+好吧 hao ba
+晚安 wan an
+早安 zao an
+加油 jia you
+@4
+好嘞 hao lei
+行吧 xing ba
+可以的 ke yi de
+当然可以 dang ran ke yi
+没事 mei shi
+没事儿 mei shi er
+放心 fang xin
+别担心 bie dan xin
+不用谢 bu yong xie
+谢谢大家 xie xie da jia
+麻烦你 ma fan ni
+麻烦了 ma fan le
+辛苦你了 xin ku ni le
+辛苦啦 xin ku la
+在的 zai de
+在呢 zai ne
+怎么办 zen me ban
+为什么 wei shen me
+什么时候 shen me shi hou
+在哪里 zai na li
+在哪儿 zai na er
+多少钱 duo shao qian
+干什么 gan shen me
+干嘛 gan ma
+干啥 gan sha
+咋了 za le
+咋办 za ban
+真的吗 zhen de ma
+真的假的 zhen de jia de
+是吗 shi ma
+对吧 dui ba
+好不好 hao bu hao
+行不行 xing bu xing
+可不可以 ke bu ke yi
+要不要 yao bu yao
+有没有 you mei you
+是不是 shi bu shi
+太好了 tai hao le
+太棒了 tai bang le
+好厉害 hao li hai
+厉害了 li hai le
+真棒 zhen bang
+好开心 hao kai xin
+好难过 hao nan guo
+好累 hao lei
+好困 hao kun
+好饿 hao e
+好烦 hao fan
+嘿嘿 hei hei
+呵呵 he he
+嘻嘻 xi xi
+哎呀 ai ya
+天哪 tian na
+我的天 wo de tian
+早上好 zao shang hao
+中午好 zhong wu hao
+下午好 xia wu hao
+晚上好 wan shang hao
+早点休息 zao dian xiu xi
+早点睡 zao dian shui
+好好休息 hao hao xiu xi
+注意安全 zhu yi an quan
+注意身体 zhu yi shen ti
+多喝热水 duo he re shui
+一路平安 yi lu ping an
+一路顺风 yi lu shun feng
+回头见 hui tou jian
+明天见 ming tian jian
+下次见 xia ci jian
+拜拜 bai bai
+稍等 shao deng
+等一下 deng yi xia
+等一等 deng yi deng
+马上到 ma shang dao
+快到了 kuai dao le
+到了吗 dao le ma
+到家了 dao jia le
+出发了 chu fa le
+知道了 zhi dao le
+明白了 ming bai le
+懂了 dong le
+好的收到 hao de shou dao
+收到谢谢 shou dao xie xie
+我觉得 wo jue de
+我知道 wo zhi dao
+我不知道 wo bu zhi dao
+我也是 wo ye shi
+我也不知道 wo ye bu zhi dao
+你呢 ni ne
+然后呢 ran hou ne
+算了 suan le
+随便 sui bian
+都行 dou xing
+都可以 dou ke yi
+无所谓 wu suo wei
+看情况 kan qing kuang
+再说吧 zai shuo ba
+下次吧 xia ci ba
+改天吧 gai tian ba
+有空吗 you kong ma
+有时间吗 you shi jian ma
+方便吗 fang bian ma
+吃了吗 chi le ma
+吃饭了吗 chi fan le ma
+睡了吗 shui le ma
+起床了吗 qi chuang le ma
+生日快乐 sheng ri kuai le
+新年快乐 xin nian kuai le
+节日快乐 jie ri kuai le
+中秋快乐 zhong qiu kuai le
+春节快乐 chun jie kuai le
+元旦快乐 yuan dan kuai le
+圣诞快乐 sheng dan kuai le
+国庆快乐 guo qing kuai le
+端午安康 duan wu an kang
+恭喜发财 gong xi fa cai
+万事如意 wan shi ru yi
+身体健康 shen ti jian kang
+工作顺利 gong zuo shun li
+学业进步 xue ye jin bu
+心想事成 xin xiang shi cheng
+新婚快乐 xin hun kuai le
+恭喜恭喜 gong xi gong xi
+祝你好运 zhu ni hao yun
+好久不见 hao jiu bu jian
+最近怎么样 zui jin zen me yang
+@3
+我在呢 wo zai ne
+我到了 wo dao le
+我先走了 wo xian zou le
+我马上来 wo ma shang lai
+我请客 wo qing ke
+你说呢 ni shuo ne
+你猜 ni cai
+你懂的 ni dong de
+没毛病 mei mao bing
+有道理 you dao li
+说得对 shuo de dui
+太对了 tai dui le
+就是说 jiu shi shuo
+怎么说呢 zen me shuo ne
+不至于 bu zhi yu
+不一定 bu yi ding
+差不多 cha bu duo
+还行 hai xing
+还可以 hai ke yi
+挺好的 ting hao de
+挺好 ting hao
+真不错 zhen bu cuo
+没想到 mei xiang dao
+想多了 xiang duo le
+别闹 bie nao
+别急 bie ji
+慢慢来 man man lai
+不着急 bu zhao ji
+来得及 lai de ji
+来不及 lai bu ji
+抓紧时间 zhua jin shi jian
+一会儿 yi hui er
+一会儿见 yi hui er jian
+等会儿 deng hui er
+待会儿 dai hui er
+这会儿 zhe hui er
+有点儿 you dian er
+一点儿 yi dian er
+好玩儿 hao wan er
+哪儿 na er
+这儿 zhe er
+那儿 na er
+早生贵子 zao sheng gui zi
+百年好合 bai nian hao he
+生意兴隆 sheng yi xing long
+财源广进 cai yuan guang jin
+步步高升 bu bu gao sheng
+前程似锦 qian cheng si jin
+金榜题名 jin bang ti ming
+平安喜乐 ping an xi le
+阖家欢乐 he jia huan le
+岁岁平安 sui sui ping an
+福如东海 fu ru dong hai
+寿比南山 shou bi nan shan
+早日康复 zao ri kang fu
+节哀顺变 jie ai shun bian

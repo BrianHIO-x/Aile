@@ -1,0 +1,136 @@
+# 网络常用语与生活方式词汇。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@3
+内卷 nei juan
+躺平 tang ping
+摆烂 bai lan
+破防 po fang
+干饭 gan fan
+干饭人 gan fan ren
+社恐 she kong
+社牛 she niu
+佛系 fo xi
+吃瓜 chi gua
+吃瓜群众 chi gua qun zhong
+真香 zhen xiang
+柠檬精 ning meng jing
+杠精 gang jing
+键盘侠 jian pan xia
+逆袭 ni xi
+硬核 ying he
+上头 shang tou
+下头 xia tou
+离谱 li pu
+太离谱了 tai li pu le
+无语 wu yu
+服了 fu le
+笑死 xiao si
+笑死我了 xiao si wo le
+太难了 tai nan le
+泪目 lei mu
+破圈 po quan
+出圈 chu quan
+爆款 bao kuan
+网红店 wang hong dian
+打卡点 da ka dian
+名场面 ming chang mian
+翻车 fan che
+塌房 ta fang
+冲浪 chong lang
+追剧 zhui ju
+刷剧 shua ju
+剧透 ju tou
+二次元 er ci yuan
+手游 shou you
+开黑 kai hei
+上分 shang fen
+氪金 ke jin
+副本 fu ben
+团战 tuan zhan
+凡尔赛 fan er sai
+躺赢 tang ying
+内耗 nei hao
+精神内耗 jing shen nei hao
+情绪价值 qing xu jia zhi
+松弛感 song chi gan
+氛围感 fen wei gan
+仪式感 yi shi gan
+安全感 an quan gan
+幸福感 xing fu gan
+获得感 huo de gan
+存在感 cun zai gan
+高级感 gao ji gan
+颜值 yan zhi
+高颜值 gao yan zhi
+颜控 yan kong
+剁手 duo shou
+吃土 chi tu
+月光族 yue guang zu
+断舍离 duan she li
+极简 ji jian
+小确幸 xiao que xing
+正能量 zheng neng liang
+负能量 fu neng liang
+给力 gei li
+靠谱 kao pu
+不靠谱 bu kao pu
+走心 zou xin
+扎心 zha xin
+暖心 nuan xin
+安排上 an pai shang
+整活 zheng huo
+摸鱼 mo yu
+划水 hua shui
+躺枪 tang qiang
+背锅 bei guo
+甩锅 shuai guo
+画饼 hua bing
+稳了 wen le
+绝了 jue le
+醉了 zui le
+爱了 ai le
+卷王 juan wang
+脱单 tuo dan
+单身狗 dan shen gou
+撒狗粮 sa gou liang
+秀恩爱 xiu en ai
+恋爱脑 lian ai nao
+工具人 gong ju ren
+打工 da gong
+带娃 dai wa
+遛娃 liu wa
+鸡娃 ji wa
+宝妈 bao ma
+宝爸 bao ba
+萌娃 meng wa
+铲屎官 chan shi guan
+撸猫 lu mao
+熬夜 ao ye
+早睡早起 zao shui zao qi
+养生 yang sheng
+朋克养生 peng ke yang sheng
+减脂 jian zhi
+增肌 zeng ji
+健身房 jian shen fang
+撸铁 lu tie
+跑步机 pao bu ji
+瑜伽 yu jia
+普拉提 pu la ti
+骑行 qi xing
+露营 lu ying
+徒步 tu bu
+飞盘 fei pan
+自驾游 zi jia you
+周边游 zhou bian you
+说走就走 shuo zou jiu zou
+网红打卡 wang hong da ka
+拍照打卡 pai zhao da ka
+@2
+绝绝子 jue jue zi
+懂王 dong wang
+网瘾 wang yin
+熬夜党 ao ye dang
+云吸猫 yun xi mao
+晕了 yun le
+哭了 ku le
+拼了 pin le
+走起 zou qi

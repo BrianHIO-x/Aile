@@ -1,0 +1,6 @@
+# 基础词库里的旧写法与读音修正。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+# “显着”是“显著”的旧写法，基础词库还把它标成 xian zhe，词频反而高于“显著”
+@remove
+显着 xian zhe
+@set 3000
+显著 xian zhu

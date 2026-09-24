@@ -1,0 +1,301 @@
+# 整句评测集：每行为“汉字句子<TAB>拼音”，拼音按音节以空格分隔，ü 写作 v。
+# 这份句子只用于评测，不参与二元模型训练，训练语料在 tools/lexicon-src/corpus 下另行编写。
+# 句子避开他、她、它这类只凭拼音无法区分的写法。
+我今天晚上不回家吃饭	wo jin tian wan shang bu hui jia chi fan
+你什么时候有空	ni shen me shi hou you kong
+明天早上八点开会	ming tian zao shang ba dian kai hui
+这个问题我们下午再讨论	zhe ge wen ti wo men xia wu zai tao lun
+我已经把文件发给你了	wo yi jing ba wen jian fa gei ni le
+麻烦你帮我看一下	ma fan ni bang wo kan yi xia
+今天的天气非常好	jin tian de tian qi fei chang hao
+我们一起去吃火锅吧	wo men yi qi qu chi huo guo ba
+你到家了吗	ni dao jia le ma
+我在路上马上就到	wo zai lu shang ma shang jiu dao
+周末有什么安排	zhou mo you shen me an pai
+这家店的咖啡很好喝	zhe jia dian de ka fei hen hao he
+快递已经放在门口了	kuai di yi jing fang zai men kou le
+请把会议记录整理一下	qing ba hui yi ji lu zheng li yi xia
+我觉得这个方案可以	wo jue de zhe ge fang an ke yi
+手机快没电了	shou ji kuai mei dian le
+你能不能帮我拿一下快递	ni neng bu neng bang wo na yi xia kuai di
+下班以后一起去健身	xia ban yi hou yi qi qu jian shen
+我想买一台新的平板电脑	wo xiang mai yi tai xin de ping ban dian nao
+这部电影特别好看	zhe bu dian ying te bie hao kan
+孩子明天要考试	hai zi ming tian yao kao shi
+记得带上身份证	ji de dai shang shen fen zheng
+路上注意安全	lu shang zhu yi an quan
+我刚刚看到你的消息	wo gang gang kan dao ni de xiao xi
+不好意思我来晚了	bu hao yi si wo lai wan le
+谢谢你的帮助	xie xie ni de bang zhu
+这个价格有点贵	zhe ge jia ge you dian gui
+能便宜一点吗	neng pian yi yi dian ma
+我们下周三见面吧	wo men xia zhou san jian mian ba
+老板让我明天交报告	lao ban rang wo ming tian jiao bao gao
+你先休息一下	ni xian xiu xi yi xia
+晚饭想吃什么	wan fan xiang chi shen me
+我在超市买东西	wo zai chao shi mai dong xi
+这个软件需要更新	zhe ge ruan jian xu yao geng xin
+电脑突然死机了	dian nao tu ran si ji le
+你可以重启一下试试	ni ke yi chong qi yi xia shi shi
+网络好像有点问题	wang luo hao xiang you dian wen ti
+我把照片发到群里了	wo ba zhao pian fa dao qun li le
+大家辛苦了	da jia xin ku le
+今天的任务完成了吗	jin tian de ren wu wan cheng le ma
+我还没有吃早饭	wo hai mei you chi zao fan
+外面下雨了记得带伞	wai mian xia yu le ji de dai san
+我们坐地铁去吧	wo men zuo di tie qu ba
+高铁票已经买好了	gao tie piao yi jing mai hao le
+酒店在火车站附近	jiu dian zai huo che zhan fu jin
+这道题我不会做	zhe dao ti wo bu hui zuo
+老师布置了很多作业	lao shi bu zhi le hen duo zuo ye
+期末考试快到了	qi mo kao shi kuai dao le
+我正在准备面试	wo zheng zai zhun bei mian shi
+简历已经投出去了	jian li yi jing tou chu qu le
+下个月开始放暑假	xia ge yue kai shi fang shu jia
+妈妈做的菜最好吃	ma ma zuo de cai zui hao chi
+周末带孩子去公园玩	zhou mo dai hai zi qu gong yuan wan
+医生说要多喝水	yi sheng shuo yao duo he shui
+我有点感冒了	wo you dian gan mao le
+早点休息不要熬夜	zao dian xiu xi bu yao ao ye
+祝你工作顺利	zhu ni gong zuo shun li
+新年快乐万事如意	xin nian kuai le wan shi ru yi
+这个功能怎么用	zhe ge gong neng zen me yong
+输入法的候选词不太准确	shu ru fa de hou xuan ci bu tai zhun que
+分离键盘打字很方便	fen li jian pan da zi hen fang bian
+横屏的时候用两只手打字	heng ping de shi hou yong liang zhi shou da zi
+我想换一个大一点的屏幕	wo xiang huan yi ge da yi dian de ping mu
+请问洗手间在哪里	qing wen xi shou jian zai na li
+这里可以刷卡吗	zhe li ke yi shua ka ma
+我用微信付款	wo yong wei xin fu kuan
+扫一下这个二维码	sao yi xia zhe ge er wei ma
+把链接发给我	ba lian jie fa gei wo
+我在朋友圈看到了	wo zai peng you quan kan dao le
+给我点个赞	gei wo dian ge zan
+视频通话方便吗	shi pin tong hua fang bian ma
+你的声音有点小	ni de sheng yin you dian xiao
+我听不清楚	wo ting bu qing chu
+信号不太好	xin hao bu tai hao
+等我一会儿	deng wo yi hui er
+我马上下楼	wo ma shang xia lou
+车停在小区门口	che ting zai xiao qu men kou
+今天路上特别堵	jin tian lu shang te bie du
+我打车过去	wo da che guo qu
+司机已经到了	si ji yi jing dao le
+这件衣服有没有大一号的	zhe jian yi fu you mei you da yi hao de
+可以退货吗	ke yi tui huo ma
+订单已经发货了	ding dan yi jing fa huo le
+优惠券什么时候过期	you hui quan shen me shi hou guo qi
+我在网上买了一本书	wo zai wang shang mai le yi ben shu
+这本书写得很好	zhe ben shu xie de hen hao
+你说得对	ni shuo de dui
+我们要认真地完成工作	wo men yao ren zhen de wan cheng gong zuo
+慢慢地走回家	man man de zou hui jia
+天气越来越冷了	tian qi yue lai yue leng le
+多穿点衣服别着凉	duo chuan dian yi fu bie zhao liang
+空调温度调高一点	kong tiao wen du tiao gao yi dian
+冰箱里还有牛奶	bing xiang li hai you niu nai
+我去楼下取个快递	wo qu lou xia qu ge kuai di
+取件码是多少	qu jian ma shi duo shao
+我忘记带钥匙了	wo wang ji dai yao shi le
+你现在方便接电话吗	ni xian zai fang bian jie dian hua ma
+我一会儿给你回电话	wo yi hui er gei ni hui dian hua
+开会的时候手机静音	kai hui de shi hou shou ji jing yin
+项目进度有点慢	xiang mu jin du you dian man
+我们需要再招一个人	wo men xu yao zai zhao yi ge ren
+这个需求下周上线	zhe ge xu qiu xia zhou shang xian
+测试发现了几个问题	ce shi fa xian le ji ge wen ti
+代码已经提交了	dai ma yi jing ti jiao le
+服务器出了点故障	fu wu qi chu le dian gu zhang
+数据已经备份好了	shu ju yi jing bei fen hao le
+请大家准时参加	qing da jia zhun shi can jia
+会议改到下午三点	hui yi gai dao xia wu san dian
+我请两天假	wo qing liang tian jia
+这个月的工资发了吗	zhe ge yue de gong zi fa le ma
+报销单交给财务	bao xiao dan jiao gei cai wu
+发票抬头写公司名称	fa piao tai tou xie gong si ming cheng
+合同明天签	he tong ming tian qian
+客户对方案很满意	ke hu dui fang an hen man yi
+我们再商量一下	wo men zai shang liang yi xia
+这件事情很重要	zhe jian shi qing hen zhong yao
+你先别着急	ni xian bie zhao ji
+慢慢来不着急	man man lai bu zhao ji
+我相信你一定可以	wo xiang xin ni yi ding ke yi
+加油你是最棒的	jia you ni shi zui bang de
+好久不见最近怎么样	hao jiu bu jian zui jin zen me yang
+最近工作忙不忙	zui jin gong zuo mang bu mang
+有时间一起吃个饭	you shi jian yi qi chi ge fan
+我请客	wo qing ke
+下次一定	xia ci yi ding
+没关系下次再说	mei guan xi xia ci zai shuo
+我先走了	wo xian zou le
+晚安早点睡	wan an zao dian shui
+早上好今天也要加油	zao shang hao jin tian ye yao jia you
+我刚起床	wo gang qi chuang
+今天起晚了	jin tian qi wan le
+地铁上人太多了	di tie shang ren tai duo le
+我在公司楼下等你	wo zai gong si lou xia deng ni
+你在哪个门	ni zai na ge men
+我看到你了	wo kan dao ni le
+这个地方很难找	zhe ge di fang hen nan zhao
+我发个定位给你	wo fa ge ding wei gei ni
+导航显示还有五公里	dao hang xian shi hai you wu gong li
+前面路口右转	qian mian lu kou you zhuan
+停车场在地下二层	ting che chang zai di xia er ceng
+电动车需要充电了	dian dong che xu yao chong dian le
+充电宝借我用一下	chong dian bao jie wo yong yi xia
+耳机没电了	er ji mei dian le
+蓝牙连不上	lan ya lian bu shang
+你把热点打开	ni ba re dian da kai
+流量用完了	liu liang yong wan le
+这个月话费有点高	zhe ge yue hua fei you dian gao
+我换了新手机	wo huan le xin shou ji
+照片太多内存不够了	zhao pian tai duo nei cun bu gou le
+清理一下缓存	qing li yi xia huan cun
+截图发给你看看	jie tu fa gei ni kan kan
+这个表情包太好笑了	zhe ge biao qing bao tai hao xiao le
+哈哈哈笑死我了	ha ha ha xiao si wo le
+真的假的	zhen de jia de
+太离谱了吧	tai li pu le ba
+我也是这么想的	wo ye shi zhe me xiang de
+你说的有道理	ni shuo de you dao li
+我不太同意这个观点	wo bu tai tong yi zhe ge guan dian
+这个问题比较复杂	zhe ge wen ti bi jiao fu za
+我需要一点时间考虑	wo xu yao yi dian shi jian kao lv
+考虑清楚再做决定	kao lv qing chu zai zuo jue ding
+结果出来了告诉我	jie guo chu lai le gao su wo
+我会尽快回复你	wo hui jin kuai hui fu ni
+邮件已经收到了	you jian yi jing shou dao le
+附件打不开	fu jian da bu kai
+请用电脑打开这个文档	qing yong dian nao da kai zhe ge wen dang
+表格里的数据有错误	biao ge li de shu ju you cuo wu
+我重新算了一遍	wo chong xin suan le yi bian
+总共花了三百块钱	zong gong hua le san bai kuai qian
+我们平摊吧	wo men ping tan ba
+我转账给你	wo zhuan zhang gei ni
+红包收到了谢谢	hong bao shou dao le xie xie
+这个周末去爬山吗	zhe ge zhou mo qu pa shan ma
+山上风景很漂亮	shan shang feng jing hen piao liang
+我们拍了很多照片	wo men pai le hen duo zhao pian
+下次带你一起去	xia ci dai ni yi qi qu
+暑假打算去旅游	shu jia da suan qu lv you
+机票比较便宜	ji piao bi jiao pian yi
+酒店已经订好了	jiu dian yi jing ding hao le
+护照快过期了	hu zhao kuai guo qi le
+签证办下来了	qian zheng ban xia lai le
+飞机晚点了	fei ji wan dian le
+我在机场等你	wo zai ji chang deng ni
+行李太重了	xing li tai zhong le
+这个城市的夜景很美	zhe ge cheng shi de ye jing hen mei
+当地的小吃很有特色	dang di de xiao chi hen you te se
+我想喝一杯奶茶	wo xiang he yi bei nai cha
+少糖少冰	shao tang shao bing
+外卖到了	wai mai dao le
+今天点外卖吧	jin tian dian wai mai ba
+这家餐厅要排队	zhe jia can ting yao pai dui
+我们提前预约一下	wo men ti qian yu yue yi xia
+医院挂号要提前	yi yuan gua hao yao ti qian
+体检报告出来了	ti jian bao gao chu lai le
+身体没什么问题	shen ti mei shen me wen ti
+最近睡眠不太好	zui jin shui mian bu tai hao
+每天坚持跑步	mei tian jian chi pao bu
+我在减肥	wo zai jian fei
+晚上少吃一点	wan shang shao chi yi dian
+孩子发烧了	hai zi fa shao le
+带孩子去医院看看	dai hai zi qu yi yuan kan kan
+幼儿园今天放假	you er yuan jin tian fang jia
+家长会几点开始	jia zhang hui ji dian kai shi
+作业写完了吗	zuo ye xie wan le ma
+数学成绩提高了	shu xue cheng ji ti gao le
+英语单词要多背	ying yu dan ci yao duo bei
+周末上辅导班	zhou mo shang fu dao ban
+学校组织了春游	xue xiao zu zhi le chun you
+同学们都很开心	tong xue men dou hen kai xin
+我考上研究生了	wo kao shang yan jiu sheng le
+论文还没写完	lun wen hai mei xie wan
+导师让我修改论文	dao shi rang wo xiu gai lun wen
+答辩安排在下个月	da bian an pai zai xia ge yue
+毕业以后想去大城市工作	bi ye yi hou xiang qu da cheng shi gong zuo
+找工作真不容易	zhao gong zuo zhen bu rong yi
+我收到录用通知了	wo shou dao lu yong tong zhi le
+下周一入职	xia zhou yi ru zhi
+新同事都很友好	xin tong shi dou hen you hao
+公司离家有点远	gong si li jia you dian yuan
+每天通勤一个小时	mei tian tong qin yi ge xiao shi
+我打算搬家	wo da suan ban jia
+房租又涨了	fang zu you zhang le
+物业费该交了	wu ye fei gai jiao le
+家里的网断了	jia li de wang duan le
+师傅明天上门维修	shi fu ming tian shang men wei xiu
+洗衣机坏了	xi yi ji huai le
+我在网上约了保洁	wo zai wang shang yue le bao jie
+垃圾分类很重要	la ji fen lei hen zhong yao
+楼下新开了一家超市	lou xia xin kai le yi jia chao shi
+水果很新鲜	shui guo hen xin xian
+帮我带一瓶水	bang wo dai yi ping shui
+我不喝饮料	wo bu he yin liao
+这个菜有点辣	zhe ge cai you dian la
+味道还不错	wei dao hai bu cuo
+下次还来这家	xia ci hai lai zhe jia
+服务员买单	fu wu yuan mai dan
+可以开发票吗	ke yi kai fa piao ma
+我们打包带走	wo men da bao dai zou
+电影几点开始	dian ying ji dian kai shi
+我已经买好票了	wo yi jing mai hao piao le
+最近在追一部电视剧	zui jin zai zhui yi bu dian shi ju
+千万别剧透	qian wan bie ju tou
+这首歌很好听	zhe shou ge hen hao ting
+周末一起打游戏	zhou mo yi qi da you xi
+今晚有球赛	jin wan you qiu sai
+我们队赢了	wo men dui ying le
+比赛太精彩了	bi sai tai jing cai le
+天气预报说明天有雨	tian qi yu bao shuo ming tian you yu
+出门记得戴口罩	chu men ji de dai kou zhao
+今年冬天特别冷	jin nian dong tian te bie leng
+春天来了花都开了	chun tian lai le hua dou kai le
+这个问题已经解决了	zhe ge wen ti yi jing jie jue le
+系统升级以后变快了	xi tong sheng ji yi hou bian kuai le
+新版本修复了很多问题	xin ban ben xiu fu le hen duo wen ti
+这款平板的屏幕很大	zhe kuan ping ban de ping mu hen da
+电池续航时间很长	dian chi xu hang shi jian hen chang
+用手写笔做笔记很方便	yong shou xie bi zuo bi ji hen fang bian
+这个应用需要登录账号	zhe ge ying yong xu yao deng lu zhang hao
+验证码发到手机上了	yan zheng ma fa dao shou ji shang le
+密码忘记了怎么办	mi ma wang ji le zen me ban
+我帮你重置一下密码	wo bang ni chong zhi yi xia mi ma
+注意保护个人隐私	zhu yi bao hu ge ren yin si
+不要点陌生的链接	bu yao dian mo sheng de lian jie
+小心电话诈骗	xiao xin dian hua zha pian
+人工智能发展得很快	ren gong zhi neng fa zhan de hen kuai
+现在很多人用手机支付	xian zai hen duo ren yong shou ji zhi fu
+我很少用现金	wo hen shao yong xian jin
+银行卡余额不足	yin hang ka yu e bu zu
+我去银行办点事	wo qu yin hang ban dian shi
+你的意见很重要	ni de yi jian hen zhong yao
+请大家畅所欲言	qing da jia chang suo yu yan
+我完全同意	wo wan quan tong yi
+让我想一想	rang wo xiang yi xiang
+等我查一下再告诉你	deng wo cha yi xia zai gao su ni
+你现在在干什么	ni xian zai zai gan shen me
+我在家看书	wo zai jia kan shu
+刚下班准备回家	gang xia ban zhun bei hui jia
+今天加班到很晚	jin tian jia ban dao hen wan
+明天还要早起	ming tian hai yao zao qi
+我们明天再联系	wo men ming tian zai lian xi
+有事随时找我	you shi sui shi zhao wo
+收到马上处理	shou dao ma shang chu li
+好的没问题	hao de mei wen ti
+辛苦你了	xin ku ni le
+麻烦大家了	ma fan da jia le
+给大家添麻烦了	gei da jia tian ma fan le
+这是我应该做的	zhe shi wo ying gai zuo de
+祝你生日快乐	zhu ni sheng ri kuai le
+中秋节快乐	zhong qiu jie kuai le
+过年回老家吗	guo nian hui lao jia ma
+春节假期有几天	chun jie jia qi you ji tian
+我给爸妈买了礼物	wo gei ba ma mai le li wu
+爷爷奶奶身体很好	ye ye nai nai shen ti hen hao
+一家人在一起最重要	yi jia ren zai yi qi zui zhong yao
+我很想念家乡的味道	wo hen xiang nian jia xiang de wei dao
+有空常回家看看	you kong chang hui jia kan kan
+时间过得真快	shi jian guo de zhen kuai
+希望一切顺利	xi wang yi qie shun li

@@ -1,0 +1,118 @@
+# 健康医疗与支付理财。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@4
+感冒 gan mao
+发烧 fa shao
+退烧 tui shao
+咳嗽 ke sou
+嗓子疼 sang zi teng
+头疼 tou teng
+头晕 tou yun
+拉肚子 la du zi
+过敏 guo min
+鼻炎 bi yan
+流感 liu gan
+甲流 jia liu
+新冠 xin guan
+疫苗 yi miao
+打疫苗 da yi miao
+口罩 kou zhao
+戴口罩 dai kou zhao
+医院 yi yuan
+门诊 men zhen
+急诊 ji zhen
+挂号 gua hao
+预约挂号 yu yue gua hao
+看病 kan bing
+看医生 kan yi sheng
+医生 yi sheng
+护士 hu shi
+药店 yao dian
+买药 mai yao
+吃药 chi yao
+退烧药 tui shao yao
+感冒药 gan mao yao
+消炎药 xiao yan yao
+布洛芬 bu luo fen
+体检 ti jian
+体检报告 ti jian bao gao
+化验单 hua yan dan
+血压 xue ya
+血糖 xue tang
+心率 xin lv
+睡眠 shui mian
+失眠 shi mian
+减肥 jian fei
+健身 jian shen
+运动 yun dong
+跑步 pao bu
+散步 san bu
+步数 bu shu
+卡路里 ka lu li
+蛋白质 dan bai zhi
+维生素 wei sheng su
+保健品 bao jian pin
+余额 yu e
+零钱 ling qian
+余额宝 yu e bao
+花呗 hua bei
+信用卡 xin yong ka
+银行卡 yin hang ka
+还款 huan kuan
+分期 fen qi
+理财 li cai
+基金 ji jin
+股票 gu piao
+存款 cun kuan
+取钱 qu qian
+存钱 cun qian
+提现 ti xian
+充值 chong zhi
+手续费 shou xu fei
+账单 zhang dan
+记账 ji zhang
+保险 bao xian
+移动支付 yi dong zhi fu
+手机支付 shou ji zhi fu
+扫码支付 sao ma zhi fu
+刷卡 shua ka
+现金 xian jin
+@3
+借呗 jie bei
+储蓄卡 chu xu ka
+还信用卡 huan xin yong ka
+分期付款 fen qi fu kuan
+利息 li xi
+利率 li lv
+炒股 chao gu
+涨停 zhang ting
+跌停 die ting
+大盘 da pan
+取款 qu kuan
+汇款 hui kuan
+工资卡 gong zi ka
+公积金贷款 gong ji jin dai kuan
+房贷利率 fang dai li lv
+首付 shou fu
+月供 yue gong
+医疗保险 yi liao bao xian
+车险 che xian
+理赔 li pei
+退保 tui bao
+汇率 hui lv
+数字人民币 shu zi ren min bi
+收据 shou ju
+发票抬头 fa piao tai tou
+税号 shui hao
+核酸 he suan
+核酸检测 he suan jian ce
+抗原 kang yuan
+复诊 fu zhen
+住院 zhu yuan
+出院 chu yuan
+手术 shou shu
+牙医 ya yi
+洗牙 xi ya
+拔牙 ba ya
+近视 jin shi
+配眼镜 pei yan jing
+隐形眼镜 yin xing yan jing

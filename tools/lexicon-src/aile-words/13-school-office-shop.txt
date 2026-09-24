@@ -1,0 +1,92 @@
+# 学科课程、办公协作与网店购物。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@4
+语文 yu wen
+数学 shu xue
+英语 ying yu
+物理 wu li
+化学 hua xue
+生物 sheng wu
+历史 li shi
+地理 di li
+政治 zheng zhi
+体育 ti yu
+美术 mei shu
+音乐 yin yue
+科学 ke xue
+课程表 ke cheng biao
+课本 ke ben
+练习册 lian xi ce
+试卷 shi juan
+答题卡 da ti ka
+准考证 zhun kao zheng
+分数线 fen shu xian
+填志愿 tian zhi yuan
+工作群 gong zuo qun
+群公告 qun gong gao
+通知 tong zhi
+公告 gong gao
+会议通知 hui yi tong zhi
+放假通知 fang jia tong zhi
+共享文档 gong xiang wen dang
+在线文档 zai xian wen dang
+云文档 yun wen dang
+腾讯文档 teng xun wen dang
+金山文档 jin shan wen dang
+远程协助 yuan cheng xie zhu
+共享屏幕 gong xiang ping mu
+屏幕共享 ping mu gong xiang
+开摄像头 kai she xiang tou
+开麦 kai mai
+闭麦 bi mai
+旗舰店 qi jian dian
+官方旗舰店 guan fang qi jian dian
+专卖店 zhuan mai dian
+实体店 shi ti dian
+网店 wang dian
+店铺 dian pu
+卖家 mai jia
+买家 mai jia
+快递费 kuai di fei
+运费 yun fei
+运费险 yun fei xian
+七天无理由 qi tian wu li you
+无理由退货 wu li you tui huo
+价格保护 jia ge bao hu
+保价 bao jia
+定金 ding jin
+尾款 wei kuan
+预售 yu shou
+现货 xian huo
+缺货 que huo
+补货 bu huo
+到货 dao huo
+断货 duan huo
+库存 ku cun
+@3
+编程课 bian cheng ke
+考卷 kao juan
+录取分数线 lu qu fen shu xian
+高考志愿 gao kao zhi yuan
+模拟题 mo ni ti
+真题 zhen ti
+网课老师 wang ke lao shi
+家教 jia jiao
+学费 xue fei
+生活费 sheng huo fei
+奖学金 jiang xue jin
+助学金 zhu xue jin
+学生证 xue sheng zheng
+校园卡 xiao yuan ka
+饭卡 fan ka
+一卡通 yi ka tong
+掌柜 zhang gui
+店主 dian zhu
+好评返现 hao ping fan xian
+包装盒 bao zhuang he
+快递单号 kuai di dan hao
+订单号 ding dan hao
+订单 ding dan
+下错单 xia cuo dan
+拍错了 pai cuo le
+仅退款 jin tui kuan
+退货退款 tui huo tui kuan

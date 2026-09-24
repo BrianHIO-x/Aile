@@ -1,0 +1,36 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Aile"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Aile 使用说明"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Aile输入法"
+    },
+    {
+      "name": "ime_name",
+      "value": "Aile输入法"
+    },
+    {
+      "name": "ime_description",
+      "value": "面向平板双手握持的分离式输入法"
+    },
+    {
+      "name": "permission_pasteboard_reason",
+      "value": "在键盘剪贴板中收录复制的文字，方便再次输入"
+    },
+    {
+      "name": "ime_chinese",
+      "value": "中文拼音"
+    },
+    {
+      "name": "ime_english",
+      "value": "英文"
+    }
+  ]
+}

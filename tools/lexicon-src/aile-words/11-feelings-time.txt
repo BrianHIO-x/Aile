@@ -1,0 +1,121 @@
+# 情绪感受与时间说法。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@4
+开心 kai xin
+难过 nan guo
+生气 sheng qi
+着急 zhao ji
+紧张 jin zhang
+焦虑 jiao lv
+压力大 ya li da
+心情 xin qing
+心情不好 xin qing bu hao
+郁闷 yu men
+崩溃 beng kui
+委屈 wei qu
+感动 gan dong
+后悔 hou hui
+羡慕 xian mu
+尴尬 gan ga
+无聊 wu liao
+害怕 hai pa
+担心 dan xin
+放松 fang song
+舒服 shu fu
+难受 nan shou
+累死了 lei si le
+困死了 kun si le
+饿死了 e si le
+热死了 re si le
+冷死了 leng si le
+忙死了 mang si le
+烦死了 fan si le
+气死了 qi si le
+今天早上 jin tian zao shang
+今天上午 jin tian shang wu
+今天中午 jin tian zhong wu
+今天下午 jin tian xia wu
+今天晚上 jin tian wan shang
+明天早上 ming tian zao shang
+明天上午 ming tian shang wu
+明天中午 ming tian zhong wu
+明天下午 ming tian xia wu
+明天晚上 ming tian wan shang
+昨天晚上 zuo tian wan shang
+昨天下午 zuo tian xia wu
+后天 hou tian
+前天 qian tian
+大后天 da hou tian
+大前天 da qian tian
+今晚 jin wan
+明晚 ming wan
+昨晚 zuo wan
+这周末 zhe zhou mo
+下周末 xia zhou mo
+上周末 shang zhou mo
+下周一 xia zhou yi
+下周二 xia zhou er
+下周三 xia zhou san
+下周四 xia zhou si
+下周五 xia zhou wu
+下周六 xia zhou liu
+下周日 xia zhou ri
+这周一 zhe zhou yi
+这周五 zhe zhou wu
+周一 zhou yi
+周二 zhou er
+周三 zhou san
+周四 zhou si
+周五 zhou wu
+周六 zhou liu
+周日 zhou ri
+星期几 xing qi ji
+周几 zhou ji
+几号 ji hao
+几点 ji dian
+几点钟 ji dian zhong
+月底 yue di
+月初 yue chu
+年底 nian di
+年初 nian chu
+上半年 shang ban nian
+下半年 xia ban nian
+前几天 qian ji tian
+这几天 zhe ji tian
+过几天 guo ji tian
+最近几天 zui jin ji tian
+刚才 gang cai
+刚刚 gang gang
+待会 dai hui
+等会 deng hui
+晚点 wan dian
+早点 zao dian
+凌晨 ling chen
+傍晚 bang wan
+半夜 ban ye
+半小时 ban xiao shi
+一个小时 yi ge xiao shi
+两个小时 liang ge xiao shi
+十分钟 shi fen zhong
+五分钟 wu fen zhong
+几分钟 ji fen zhong
+一分钟 yi fen zhong
+一整天 yi zheng tian
+一上午 yi shang wu
+一下午 yi xia wu
+一晚上 yi wan shang
+@3
+好开心啊 hao kai xin a
+太开心了 tai kai xin le
+心累 xin lei
+身心俱疲 shen xin ju pi
+有点累 you dian lei
+有点困 you dian kun
+有点饿 you dian e
+有点冷 you dian leng
+有点热 you dian re
+有点忙 you dian mang
+有点事 you dian shi
+有点贵 you dian gui
+有点远 you dian yuan
+有点难 you dian nan
+有点慢 you dian man

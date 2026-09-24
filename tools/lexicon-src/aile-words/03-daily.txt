@@ -1,0 +1,244 @@
+# 购物、出行、饮食与居家。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@4
+取件码 qu jian ma
+快递柜 kuai di gui
+驿站 yi zhan
+菜鸟驿站 cai niao yi zhan
+顺丰 shun feng
+包邮 bao you
+下单 xia dan
+付款 fu kuan
+退款 tui kuan
+退货 tui huo
+换货 huan huo
+售后 shou hou
+发货 fa huo
+收货 shou huo
+收货地址 shou huo di zhi
+确认收货 que ren shou huo
+物流 wu liu
+签收 qian shou
+优惠券 you hui quan
+满减 man jian
+秒杀 miao sha
+购物车 gou wu che
+双十一 shuang shi yi
+打折 da zhe
+折扣 zhe kou
+促销 cu xiao
+团购 tuan gou
+拼单 pin dan
+砍价 kan jia
+尺码 chi ma
+码数 ma shu
+款式 kuan shi
+同款 tong kuan
+正品 zheng pin
+假货 jia huo
+性价比 xing jia bi
+划算 hua suan
+网约车 wang yue che
+打车 da che
+叫车 jiao che
+拼车 pin che
+顺风车 shun feng che
+共享单车 gong xiang dan che
+地铁站 di tie zhan
+公交车 gong jiao che
+公交站 gong jiao zhan
+高铁站 gao tie zhan
+火车站 huo che zhan
+高铁 gao tie
+动车 dong che
+高铁票 gao tie piao
+火车票 huo che piao
+机票 ji piao
+车票 che piao
+买票 mai piao
+抢票 qiang piao
+改签 gai qian
+退票 tui piao
+值机 zhi ji
+登机牌 deng ji pai
+候车室 hou che shi
+检票口 jian piao kou
+安检 an jian
+身份证 shen fen zheng
+驾驶证 jia shi zheng
+行驶证 xing shi zheng
+护照 hu zhao
+签证 qian zheng
+停车场 ting che chang
+停车位 ting che wei
+停车费 ting che fei
+加油站 jia you zhan
+堵车 du che
+限行 xian xing
+违章 wei zhang
+奶茶 nai cha
+咖啡 ka fei
+拿铁 na tie
+冰美式 bing mei shi
+火锅 huo guo
+烧烤 shao kao
+麻辣烫 ma la tang
+螺蛳粉 luo si fen
+小龙虾 xiao long xia
+烤鸭 kao ya
+饺子 jiao zi
+包子 bao zi
+面条 mian tiao
+米饭 mi fan
+炒饭 chao fan
+盒饭 he fan
+便当 bian dang
+早餐 zao can
+早饭 zao fan
+午饭 wu fan
+午餐 wu can
+晚饭 wan fan
+晚餐 wan can
+夜宵 ye xiao
+零食 ling shi
+水果 shui guo
+甜品 tian pin
+蛋糕 dan gao
+奶茶店 nai cha dian
+咖啡店 ka fei dian
+便利店 bian li dian
+超市 chao shi
+菜市场 cai shi chang
+商场 shang chang
+餐厅 can ting
+饭店 fan dian
+食堂 shi tang
+买单 mai dan
+打包 da bao
+堂食 tang shi
+外带 wai dai
+点餐 dian can
+扫码点餐 sao ma dian can
+点外卖 dian wai mai
+排队 pai dui
+取号 qu hao
+预约 yu yue
+预订 yu ding
+少糖 shao tang
+去冰 qu bing
+少冰 shao bing
+常温 chang wen
+加冰 jia bing
+全糖 quan tang
+半糖 ban tang
+无糖 wu tang
+物业 wu ye
+物业费 wu ye fei
+房租 fang zu
+押金 ya jin
+房东 fang dong
+租房 zu fang
+买房 mai fang
+房贷 fang dai
+车贷 che dai
+水电费 shui dian fei
+电费 dian fei
+水费 shui fei
+燃气费 ran qi fei
+话费 hua fei
+充话费 chong hua fei
+宽带费 kuan dai fei
+保洁 bao jie
+家政 jia zheng
+维修 wei xiu
+上门 shang men
+师傅 shi fu
+垃圾分类 la ji fen lei
+倒垃圾 dao la ji
+快递员 kuai di yuan
+外卖员 wai mai yuan
+骑手 qi shou
+司机 si ji
+@3
+洗衣机 xi yi ji
+冰箱 bing xiang
+空调 kong tiao
+热水器 re shui qi
+微波炉 wei bo lu
+电饭煲 dian fan bao
+烤箱 kao xiang
+空气炸锅 kong qi zha guo
+洗碗机 xi wan ji
+扫地机 sao di ji
+吸尘器 xi chen qi
+吹风机 chui feng ji
+加湿器 jia shi qi
+净化器 jing hua qi
+空气净化器 kong qi jing hua qi
+晾衣架 liang yi jia
+衣柜 yi gui
+床垫 chuang dian
+窗帘 chuang lian
+拖鞋 tuo xie
+雨伞 yu san
+带伞 dai san
+钥匙 yao shi
+门禁卡 men jin ka
+电梯 dian ti
+楼下 lou xia
+楼上 lou shang
+小区 xiao qu
+小区门口 xiao qu men kou
+门口 men kou
+快递站 kuai di zhan
+菜鸟 cai niao
+京东快递 jing dong kuai di
+顺丰快递 shun feng kuai di
+同城 tong cheng
+跑腿 pao tui
+代购 dai gou
+二手 er shou
+闲鱼 xian yu
+开箱 kai xiang
+拆快递 chai kuai di
+取快递 qu kuai di
+寄快递 ji kuai di
+@2
+保质期 bao zhi qi
+生产日期 sheng chan ri qi
+过期 guo qi
+口味 kou wei
+微辣 wei la
+中辣 zhong la
+特辣 te la
+不辣 bu la
+香菜 xiang cai
+不要香菜 bu yao xiang cai
+葱花 cong hua
+酱油 jiang you
+番茄 fan qie
+西红柿 xi hong shi
+土豆 tu dou
+鸡蛋 ji dan
+牛奶 niu nai
+酸奶 suan nai
+豆浆 dou jiang
+油条 you tiao
+煎饼 jian bing
+煎饼果子 jian bing guo zi
+肉夹馍 rou jia mo
+凉皮 liang pi
+米线 mi xian
+汉堡 han bao
+薯条 shu tiao
+炸鸡 zha ji
+披萨 pi sa
+寿司 shou si
+沙拉 sha la
+牛排 niu pai
+自助餐 zi zhu can
+下午茶 xia wu cha
+果汁 guo zhi
+可乐 ke le
+矿泉水 kuang quan shui
+啤酒 pi jiu
+红酒 hong jiu

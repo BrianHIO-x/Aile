@@ -1,0 +1,112 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "kb_background",
+      "value": "#D3D6DC"
+    },
+    {
+      "name": "kb_segment_track",
+      "value": "#C6CAD1"
+    },
+    {
+      "name": "kb_scrim",
+      "value": "#26000000"
+    },
+    {
+      "name": "kb_danger",
+      "value": "#E5484D"
+    },
+    {
+      "name": "key_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "key_function_background",
+      "value": "#B5BAC4"
+    },
+    {
+      "name": "key_pressed_background",
+      "value": "#C4C9D1"
+    },
+    {
+      "name": "key_text",
+      "value": "#1B1C1E"
+    },
+    {
+      "name": "key_hint_text",
+      "value": "#6B7078"
+    },
+    {
+      "name": "key_shadow",
+      "value": "#33000000"
+    },
+    {
+      "name": "kb_accent",
+      "value": "#0A59F7"
+    },
+    {
+      "name": "kb_accent_text",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "kb_candidate_pill",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "kb_divider",
+      "value": "#1F000000"
+    },
+    {
+      "name": "key_popup_shadow",
+      "value": "#2E000000"
+    },
+    {
+      "name": "key_flick_background",
+      "value": "#F3F4F6"
+    },
+    {
+      "name": "app_background",
+      "value": "#F2F3F5"
+    },
+    {
+      "name": "app_card",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "app_text",
+      "value": "#17181B"
+    },
+    {
+      "name": "app_text_secondary",
+      "value": "#6B7078"
+    },
+    {
+      "name": "app_text_tertiary",
+      "value": "#A2A6AD"
+    },
+    {
+      "name": "app_separator",
+      "value": "#14000000"
+    },
+    {
+      "name": "app_segment_track",
+      "value": "#EEF0F3"
+    },
+    {
+      "name": "app_pad",
+      "value": "#ECEEF2"
+    },
+    {
+      "name": "app_accent_soft",
+      "value": "#E7EFFE"
+    },
+    {
+      "name": "app_field",
+      "value": "#F4F5F7"
+    }
+  ]
+}

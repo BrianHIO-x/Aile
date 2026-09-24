@@ -1,0 +1,225 @@
+# 工作与学习。本项目自行整理，格式见 tools/build-lexicon.mjs 开头的说明。
+@5
+开会 kai hui
+会议 hui yi
+加班 jia ban
+下班 xia ban
+上班 shang ban
+请假 qing jia
+@4
+线上会议 xian shang hui yi
+视频会议 shi pin hui yi
+腾讯会议 teng xun hui yi
+会议室 hui yi shi
+会议纪要 hui yi ji yao
+会议记录 hui yi ji lu
+周报 zhou bao
+日报 ri bao
+月报 yue bao
+年终总结 nian zhong zong jie
+工作总结 gong zuo zong jie
+汇报 hui bao
+述职 shu zhi
+方案 fang an
+需求 xu qiu
+项目 xiang mu
+项目经理 xiang mu jing li
+产品经理 chan pin jing li
+进度 jin du
+截止日期 jie zhi ri qi
+截止时间 jie zhi shi jian
+排期 pai qi
+上线 shang xian
+下线 xia xian
+复盘 fu pan
+对接 dui jie
+跟进 gen jin
+落地 luo di
+推进 tui jin
+协调 xie tiao
+沟通 gou tong
+确认 que ren
+审批 shen pi
+流程 liu cheng
+打卡 da ka
+考勤 kao qin
+调休 tiao xiu
+年假 nian jia
+病假 bing jia
+事假 shi jia
+产假 chan jia
+婚假 hun jia
+绩效 ji xiao
+工资 gong zi
+工资条 gong zi tiao
+奖金 jiang jin
+年终奖 nian zhong jiang
+提成 ti cheng
+补贴 bu tie
+报销 bao xiao
+报销单 bao xiao dan
+发票 fa piao
+开发票 kai fa piao
+增值税发票 zeng zhi shui fa piao
+合同 he tong
+签合同 qian he tong
+劳动合同 lao dong he tong
+面试 mian shi
+简历 jian li
+投简历 tou jian li
+入职 ru zhi
+离职 li zhi
+辞职 ci zhi
+跳槽 tiao cao
+实习 shi xi
+实习生 shi xi sheng
+转正 zhuan zheng
+试用期 shi yong qi
+同事 tong shi
+领导 ling dao
+老板 lao ban
+客户 ke hu
+甲方 jia fang
+乙方 yi fang
+团队 tuan dui
+部门 bu men
+人事 ren shi
+财务 cai wu
+行政 xing zheng
+前台 qian tai
+邮件 you jian
+发邮件 fa you jian
+邮箱 you xiang
+附件 fu jian
+文档 wen dang
+表格 biao ge
+演示文稿 yan shi wen gao
+幻灯片 huan deng pian
+打印 da yin
+复印 fu yin
+盖章 gai zhang
+签字 qian zi
+考试 kao shi
+考研 kao yan
+考公 kao gong
+考编 kao bian
+高考 gao kao
+中考 zhong kao
+期末考试 qi mo kao shi
+期中考试 qi zhong kao shi
+四六级 si liu ji
+作业 zuo ye
+写作业 xie zuo ye
+论文 lun wen
+毕业论文 bi ye lun wen
+答辩 da bian
+毕业 bi ye
+毕业证 bi ye zheng
+学位证 xue wei zheng
+导师 dao shi
+研究生 yan jiu sheng
+本科 ben ke
+本科生 ben ke sheng
+大学生 da xue sheng
+学分 xue fen
+选课 xuan ke
+网课 wang ke
+上网课 shang wang ke
+上课 shang ke
+下课 xia ke
+放学 fang xue
+寒假 han jia
+暑假 shu jia
+开学 kai xue
+成绩 cheng ji
+查成绩 cha cheng ji
+老师 lao shi
+同学 tong xue
+班主任 ban zhu ren
+家长会 jia zhang hui
+家长群 jia zhang qun
+班级群 ban ji qun
+辅导班 fu dao ban
+补课 bu ke
+兴趣班 xing qu ban
+幼儿园 you er yuan
+小学 xiao xue
+初中 chu zhong
+高中 gao zhong
+图书馆 tu shu guan
+自习室 zi xi shi
+宿舍 su she
+室友 shi you
+学霸 xue ba
+刷题 shua ti
+错题本 cuo ti ben
+背单词 bei dan ci
+单词 dan ci
+@3
+工作日 gong zuo ri
+双休 shuang xiu
+单休 dan xiu
+五险一金 wu xian yi jin
+社保 she bao
+公积金 gong ji jin
+医保 yi bao
+个税 ge shui
+个人所得税 ge ren suo de shui
+退税 tui shui
+职场 zhi chang
+打工人 da gong ren
+上班族 shang ban zu
+通勤 tong qin
+加班费 jia ban fei
+内推 nei tui
+猎头 lie tou
+招聘 zhao pin
+求职 qiu zhi
+校招 xiao zhao
+社招 she zhao
+春招 chun zhao
+秋招 qiu zhao
+面试官 mian shi guan
+笔试 bi shi
+群面 qun mian
+录用 lu yong
+录取 lu qu
+录取通知书 lu qu tong zhi shu
+工牌 gong pai
+工位 gong wei
+团建 tuan jian
+年会 nian hui
+出差 chu chai
+差旅费 chai lv fei
+数据分析 shu ju fen xi
+市场调研 shi chang diao yan
+用户体验 yong hu ti yan
+用户需求 yong hu xu qiu
+竞品 jing pin
+竞品分析 jing pin fen xi
+里程碑 li cheng bei
+优先级 you xian ji
+待办 dai ban
+待办事项 dai ban shi xiang
+日程 ri cheng
+日程安排 ri cheng an pai
+备注 bei zhu
+学渣 xue zha
+学习资料 xue xi zi liao
+复习资料 fu xi zi liao
+模拟考试 mo ni kao shi
+考前复习 kao qian fu xi
+错题 cuo ti
+英语单词 ying yu dan ci
+口语练习 kou yu lian xi
+听力练习 ting li lian xi
+阅读理解 yue du li jie
+作文 zuo wen
+写作文 xie zuo wen
+数学题 shu xue ti
+物理题 wu li ti
+化学题 hua xue ti
+课外班 ke wai ban
+课后作业 ke hou zuo ye
+家庭作业 jia ting zuo ye
+学习计划 xue xi ji hua
