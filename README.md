@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/lexicon-66%2C271%20words-2EA44F" alt="词库 66271 条">
   <img src="https://img.shields.io/badge/network-offline-555555" alt="离线运行">
   <img src="https://img.shields.io/badge/device-tablet-F5A623" alt="平板">
+  <a href="https://linux.do"><img src="https://img.shields.io/badge/community-LINUX%20DO-FFB003" alt="LINUX DO"></a>
 </p>
 
 <p align="center">
@@ -341,6 +342,10 @@ Aile/
 ## 开发文档
 
 关于完整的设计决策、平台核实记录与验收方法，请阅读 [鸿蒙平板输入法开发文档](鸿蒙平板输入法开发文档.md)。其中，D01 到 D43 的决策表记录了每项功能的取舍原因。
+
+## 友情链接
+
+- [LINUX DO](https://linux.do)：感谢这个社区，让 Aile 有机会第一次公开分享。
 
 ## 致谢与许可
 
