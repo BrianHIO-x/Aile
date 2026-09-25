@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/lexicon-66%2C271%20words-2EA44F" alt="词库 66271 条">
   <img src="https://img.shields.io/badge/network-offline-555555" alt="离线运行">
   <img src="https://img.shields.io/badge/device-tablet-F5A623" alt="平板">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 许可证"></a>
   <a href="https://linux.do"><img src="https://img.shields.io/badge/community-LINUX%20DO-FFB003" alt="LINUX DO"></a>
 </p>
 
@@ -353,4 +354,4 @@ Aile/
 - 表情图片来自 [Noto Emoji](https://github.com/googlefonts/noto-emoji)，并按 Apache-2.0 许可使用。许可文件与图片放在同一个目录里，也就是 `entry/src/main/resources/rawfile/emoji/`。
 - 常用词、语料与评测样本均由本项目自行编写，没有引入外部词表。
 
-截至目前，本仓库自身的代码尚未附带开源许可证。
+本项目自身的代码按 MIT 许可证开源，全文见 [LICENSE](LICENSE)。
