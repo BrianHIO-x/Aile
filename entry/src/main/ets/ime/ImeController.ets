@@ -126,6 +126,7 @@ export class ImeController {
   private readonly layoutStore: LayoutStore = new LayoutStore();
   private readonly clipboard: ClipboardService = new ClipboardService();
   private keyboardController: inputMethodEngine.KeyboardController | undefined = undefined;
+  private inputStartTime: number = 0;
   private learner: CommitLearner | undefined = undefined;
   private readonly rawCandidateProvider: CandidateProvider = new RawCandidateProvider();
   private sessionCounter: number = 0;
@@ -164,6 +165,7 @@ export class ImeController {
     client: inputMethodEngine.InputClient): void => {
     this.sessionCounter++;
     const sessionId = this.sessionCounter;
+    this.inputStartTime = Date.now();
     this.keyboardController = kbController;
     this.editor.bind(client, sessionId);
     this.stopDeleteRepeat();
@@ -181,6 +183,7 @@ export class ImeController {
     this.refreshClipboardGrant();
     client.getEditorAttribute().then((attribute: inputMethodEngine.EditorAttribute) => {
       if (sessionId === this.editor.currentSession()) {
+        Log.info(`editor session=${sessionId} pattern=${attribute.inputPattern} enter=${attribute.enterKeyType}`);
         this.applyEditorAttribute(attribute, true);
       }
     }).catch((error: BusinessError) => {
@@ -189,6 +192,8 @@ export class ImeController {
     Log.info(`inputStart session=${sessionId}`);
   };
 
+  // 结束事件不携带会话信息，安卓兼容环境里它可能晚于下一次开始事件到达。
+  // 这里保留客户端与键盘控制器，下一次开始事件到来时自然替换，详见 EditorAdapter.markStopped
   private onInputStop = (): void => {
     const sessionId = this.editor.currentSession();
     this.stopDeleteRepeat();
@@ -197,10 +202,9 @@ export class ImeController {
     this.resetCursor();
     this.composition.reset();
     this.syncComposition();
-    this.editor.unbind(sessionId);
-    this.keyboardController = undefined;
+    this.editor.markStopped(sessionId);
     this.learner?.flush();
-    Log.info(`inputStop session=${sessionId}`);
+    Log.info(`inputStop session=${sessionId} sinceStart=${Date.now() - this.inputStartTime}ms`);
   };
 
   private onKeyboardHide = (): void => {

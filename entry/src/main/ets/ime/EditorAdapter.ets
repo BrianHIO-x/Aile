@@ -46,10 +46,23 @@ export class EditorAdapter {
   private client: inputMethodEngine.InputClient | undefined = undefined;
   private sessionId: number = 0;
   private tail: Promise<void> = Promise.resolve();
+  // 收到结束事件的会话。客户端仍然保留，每个会话只在日志里提示一次
+  private stoppedSession: number = -1;
+  private reportedSession: number = -1;
 
   bind(client: inputMethodEngine.InputClient, sessionId: number): void {
     this.client = client;
     this.sessionId = sessionId;
+  }
+
+  /**
+   * 卓易通、出境易等安卓兼容环境可能先推送新会话的开始事件，再推送旧会话的结束事件。
+   * 结束事件因此不能清掉客户端，否则新会话的所有输入都会被丢弃。编辑框确实失效时，操作失败只记日志。
+   */
+  markStopped(sessionId: number): void {
+    if (this.sessionId === sessionId) {
+      this.stoppedSession = sessionId;
+    }
   }
 
   unbind(sessionId: number): void {
@@ -270,7 +283,13 @@ export class EditorAdapter {
     const run: Promise<T> = this.tail.then(async (): Promise<T> => {
       const client = this.client;
       if (client === undefined || session !== this.sessionId) {
+        if (client === undefined) {
+          this.reportOnce(session, `${name} dropped, no client, session=${session}`);
+        }
         return fallback;
+      }
+      if (session === this.stoppedSession) {
+        this.reportOnce(session, `${name} after inputStop, session=${session}`);
       }
       try {
         return await operation(client);
@@ -283,5 +302,12 @@ export class EditorAdapter {
     this.tail = run.then((): void => {
     });
     return run;
+  }
+
+  private reportOnce(session: number, message: string): void {
+    if (this.reportedSession !== session) {
+      this.reportedSession = session;
+      Log.warn(message);
+    }
   }
 }

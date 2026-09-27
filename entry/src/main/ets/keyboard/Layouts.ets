@@ -137,13 +137,16 @@ function splitBottomLeft(page: KeyboardPageType): RowDef {
   ]);
 }
 
-// overhang 为整行向左伸出的宽度，回车键补上同样的宽度，右边界与上面几行保持整齐
+// overhang 为整行向左伸出的宽度。空格与回车的实际宽度由排版引擎按左手区换算，中英切换键补足剩余宽度，
+// 右边界与上面几行保持整齐，这里的权重只在换算失败时兜底
 function splitBottomRight(page: KeyboardPageType, overhang: number = 0): RowDef {
-  return row(-overhang, [
+  const r = row(-overhang, [
     spaceKey('space_right', DEFAULT_SPACE_WEIGHT, '右空格'),
     langOrLockKey(page, 1),
     enterKey(1.5 + overhang)
   ]);
+  r.mirrorLeft = true;
+  return r;
 }
 
 function normalBottom(page: KeyboardPageType): RowDef {

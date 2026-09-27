@@ -49,6 +49,8 @@ export interface KeyDef {
 export interface RowDef {
   lead: number;
   keys: KeyDef[];
+  // 分离布局右手区最下排按左手区的实际尺寸排布：空格与左空格等长，回车与“符号”“123”两键合起来等长
+  mirrorLeft?: boolean;
 }
 
 export interface PaneDef {

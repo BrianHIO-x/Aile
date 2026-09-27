@@ -1,4 +1,4 @@
-import { KeyboardLayout, KeyDef, KeyType, LayoutForm, PaneDef, PaneSide } from './KeyDefinitions';
+import { KeyboardLayout, KeyDef, KeyType, LayoutForm, PaneDef, PaneSide, RowDef } from './KeyDefinitions';
 import { LayoutProfile } from './LayoutProfile';
 
 export const CENTER_GAP_MIN_VP: number = 16;
@@ -43,7 +43,11 @@ function keyWeight(key: KeyDef, form: LayoutForm, profile: LayoutProfile): numbe
   return key.weight;
 }
 
-// 每行的宽度算上从上面几行跨下来的按键
+function mirrorsLeft(r: RowDef, form: LayoutForm): boolean {
+  return form === LayoutForm.SPLIT && r.mirrorLeft === true;
+}
+
+// 每行的宽度算上从上面几行跨下来的按键。按左手区换算的行不参与计算，右手区的键宽只由上面几行决定
 function paneWeight(pane: PaneDef, form: LayoutForm, profile: LayoutProfile): number {
   const carried: number[] = [];
   for (let i = 0; i < pane.rows.length; i++) {
@@ -52,6 +56,9 @@ function paneWeight(pane: PaneDef, form: LayoutForm, profile: LayoutProfile): nu
   let maxWeight = 0;
   for (let rowIndex = 0; rowIndex < pane.rows.length; rowIndex++) {
     const r = pane.rows[rowIndex];
+    if (mirrorsLeft(r, form)) {
+      continue;
+    }
     let total = r.lead + carried[rowIndex];
     for (const k of r.keys) {
       const weight = keyWeight(k, form, profile);
@@ -125,6 +132,118 @@ export function computePaneBounds(layout: KeyboardLayout, width: number, profile
   return bounds;
 }
 
+// 按左手区换算的一行，等左手区排完后再排
+interface DeferredRow {
+  row: RowDef;
+  paneIndex: number;
+  bounds: PaneBounds;
+  unit: number;
+  cellY: number;
+  cellH: number;
+}
+
+// 中英切换键至少保留的宽度，按右手区键宽计
+const MIRROR_FLEX_MIN_UNITS: number = 0.8;
+
+function makeRect(key: KeyDef, paneIndex: number, cellX: number, cellY: number, cellW: number, cellH: number,
+  gap: number): KeyRect {
+  const rect: KeyRect = {
+    key: key,
+    paneIndex: paneIndex,
+    x: cellX + gap / 2,
+    y: cellY + gap / 2,
+    w: Math.max(0, cellW - gap),
+    h: Math.max(0, cellH - gap),
+    cellX: cellX,
+    cellY: cellY,
+    cellW: cellW,
+    cellH: cellH
+  };
+  return rect;
+}
+
+function findRect(rects: KeyRect[], paneIndex: number, id: string): KeyRect | undefined {
+  for (const rect of rects) {
+    if (rect.paneIndex === paneIndex && rect.key.id === id) {
+      return rect;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * 右手区最下排：空格取左空格的宽度，回车取“符号”左边界到“123”右边界的宽度，其余按键分掉剩下的宽度。
+ * 剩余宽度不够时整行再向中间伸出，最多伸到左手区右边界外留出最小中央间隙；仍然不够时缩短空格。
+ * 左手区缺少对应按键时返回 false，由调用方按权重排布。
+ */
+function placeMirroredRow(deferred: DeferredRow, rects: KeyRect[], leftIndex: number, leftBounds: PaneBounds,
+  gap: number): boolean {
+  const symbol = findRect(rects, leftIndex, 'symbol_page');
+  const number = findRect(rects, leftIndex, 'number_page');
+  const leftSpace = findRect(rects, leftIndex, 'space_left');
+  if (symbol === undefined || number === undefined || leftSpace === undefined) {
+    return false;
+  }
+  const keys = deferred.row.keys;
+  let spaceCount = 0;
+  let enterCount = 0;
+  let flexWeight = 0;
+  for (const k of keys) {
+    if (k.type === KeyType.SPACE) {
+      spaceCount++;
+    } else if (k.type === KeyType.ENTER) {
+      enterCount++;
+    } else {
+      flexWeight += k.weight;
+    }
+  }
+  if (spaceCount !== 1 || enterCount !== 1 || flexWeight <= 0) {
+    return false;
+  }
+  const enterW = number.cellX + number.cellW - symbol.cellX;
+  let spaceW = leftSpace.cellW;
+  const rowEnd = deferred.bounds.x + deferred.bounds.width;
+  const flexMin = flexWeight * deferred.unit * MIRROR_FLEX_MIN_UNITS;
+  let rowStart = deferred.bounds.x + deferred.row.lead * deferred.unit;
+  let flexW = rowEnd - rowStart - spaceW - enterW;
+  if (flexW < flexMin) {
+    const limit = leftBounds.x + leftBounds.width + CENTER_GAP_MIN_VP;
+    rowStart = Math.min(rowStart, Math.max(limit, rowEnd - spaceW - enterW - flexMin));
+    flexW = Math.max(flexMin, rowEnd - rowStart - spaceW - enterW);
+    spaceW = Math.max(0, rowEnd - rowStart - enterW - flexW);
+  }
+  let cursor = rowStart;
+  for (const k of keys) {
+    let cellW = flexW * k.weight / flexWeight;
+    if (k.type === KeyType.SPACE) {
+      cellW = spaceW;
+    } else if (k.type === KeyType.ENTER) {
+      cellW = enterW;
+    }
+    rects.push(makeRect(k, deferred.paneIndex, cursor, deferred.cellY, cellW, deferred.cellH, gap));
+    cursor += cellW;
+  }
+  return true;
+}
+
+// 按权重排布一行，deferred 行换算失败时也走这里
+function placeWeightedRow(r: RowDef, paneIndex: number, startX: number, unit: number, cellY: number,
+  rowPitch: number, rowsLeft: number, reserved: SpanReserve[][], rowIndex: number, form: LayoutForm,
+  profile: LayoutProfile, rects: KeyRect[]): void {
+  let cursor = startX;
+  for (const k of r.keys) {
+    cursor = skipReserved(reserved[rowIndex], cursor);
+    const cellW = keyWeight(k, form, profile) * unit;
+    const span = Math.min(keySpan(k), rowsLeft);
+    rects.push(makeRect(k, paneIndex, cursor, cellY, cellW, rowPitch * span, profile.keyGapVp));
+    for (let below = rowIndex + 1; below < rowIndex + span; below++) {
+      const taken: SpanReserve = { start: cursor, end: cursor + cellW };
+      reserved[below].push(taken);
+    }
+    cursor += cellW;
+  }
+}
+
 /**
  * 计算全部按键矩形。width 与 height 为按键区域尺寸，底部抬升从按键区域底部扣除。
  */
@@ -137,8 +256,13 @@ export function computeKeyRects(layout: KeyboardLayout, width: number, height: n
   const usableHeight = Math.max(0, height - Math.min(profile.bottomLiftVp, height / 2));
   const gap = profile.keyGapVp;
   const bounds = computePaneBounds(layout, width, profile);
+  const deferredRows: DeferredRow[] = [];
+  let leftIndex = -1;
   for (let paneIndex = 0; paneIndex < layout.panes.length; paneIndex++) {
     const pane = layout.panes[paneIndex];
+    if (pane.side === PaneSide.LEFT) {
+      leftIndex = paneIndex;
+    }
     const paneBounds = bounds[paneIndex];
     const totalWeight = paneWeight(pane, layout.form, profile);
     if (totalWeight <= 0 || pane.rows.length === 0) {
@@ -152,32 +276,24 @@ export function computeKeyRects(layout: KeyboardLayout, width: number, height: n
     }
     for (let rowIndex = 0; rowIndex < pane.rows.length; rowIndex++) {
       const r = pane.rows[rowIndex];
-      let cursor = paneBounds.x + r.lead * unit;
       const cellY = rowIndex * rowPitch;
-      for (const k of r.keys) {
-        cursor = skipReserved(reserved[rowIndex], cursor);
-        const cellW = keyWeight(k, layout.form, profile) * unit;
-        const span = Math.min(keySpan(k), pane.rows.length - rowIndex);
-        const cellH = rowPitch * span;
-        const rect: KeyRect = {
-          key: k,
-          paneIndex: paneIndex,
-          x: cursor + gap / 2,
-          y: cellY + gap / 2,
-          w: Math.max(0, cellW - gap),
-          h: Math.max(0, cellH - gap),
-          cellX: cursor,
-          cellY: cellY,
-          cellW: cellW,
-          cellH: cellH
+      if (mirrorsLeft(r, layout.form)) {
+        const deferred: DeferredRow = {
+          row: r, paneIndex: paneIndex, bounds: paneBounds, unit: unit, cellY: cellY, cellH: rowPitch
         };
-        for (let below = rowIndex + 1; below < rowIndex + span; below++) {
-          const taken: SpanReserve = { start: cursor, end: cursor + cellW };
-          reserved[below].push(taken);
-        }
-        rects.push(rect);
-        cursor += cellW;
+        deferredRows.push(deferred);
+        continue;
       }
+      placeWeightedRow(r, paneIndex, paneBounds.x + r.lead * unit, unit, cellY, rowPitch,
+        pane.rows.length - rowIndex, reserved, rowIndex, layout.form, profile, rects);
+    }
+  }
+  for (const deferred of deferredRows) {
+    const placed = leftIndex >= 0 && placeMirroredRow(deferred, rects, leftIndex, bounds[leftIndex], gap);
+    if (!placed) {
+      const noReserve: SpanReserve[][] = [[]];
+      placeWeightedRow(deferred.row, deferred.paneIndex, deferred.bounds.x + deferred.row.lead * deferred.unit,
+        deferred.unit, deferred.cellY, deferred.cellH, 1, noReserve, 0, layout.form, profile, rects);
     }
   }
   return rects;
