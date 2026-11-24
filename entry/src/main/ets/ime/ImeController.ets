@@ -13,11 +13,19 @@ import { SYMBOL_CATEGORY_EN, SYMBOL_CATEGORY_ZH } from '../keyboard/Layouts';
 import { copyProfile, defaultProfile, LayoutProfile, ProfileOrientation } from '../keyboard/LayoutProfile';
 import { LONG_PRESS_MS, REPEAT_INTERVAL_MS, TouchTrack } from '../keyboard/TouchRouter';
 import { ConfirmedTyping, NO_TAP, TapSample, TouchModel } from '../keyboard/TouchModel';
-import { CandidateProvider, CandidateSource, LetterAlternative, RawCandidateProvider } from '../engine/EngineTypes';
+import {
+  CandidateOrigin,
+  CandidateProvider,
+  CandidateSource,
+  LetterAlternative,
+  RawCandidateProvider
+} from '../engine/EngineTypes';
 import { characterCount } from '../engine/UserLexicon';
+import { consumedForSyllable, extractPinyinOptions } from '../engine/PinyinFilter';
 import { RECENT_EMOJI_LIMIT } from '../keyboard/EmojiData';
 import { PICK_TEXT_LIMIT, splitPickTokens } from '../keyboard/PickText';
 import {
+  KEY_CANDIDATE_SIZE,
   KEY_CLIPBOARD_ITEMS,
   KEY_FUZZY_PINYIN,
   KEY_PHRASE_ITEMS,
@@ -28,7 +36,9 @@ import {
 } from '../storage/LayoutStore';
 import { ClipboardService } from './ClipboardService';
 import {
+  CandidateAnchor,
   CandidateFilter,
+  CandidateSize,
   CandidateView,
   ClipTab,
   ImeState,
@@ -37,18 +47,32 @@ import {
   PanelMode,
   ShiftState
 } from './ImeState';
-import { CommitLearner, CommitResult, CompositionController, CompositionSnapshot } from './CompositionController';
+import {
+  CandidateRules,
+  CommitLearner,
+  CommitResult,
+  CompositionController,
+  CompositionSnapshot
+} from './CompositionController';
 import { CLEAR_TEXT_LIMIT, ClearResult, ClearStatus, EditorAdapter } from './EditorAdapter';
+import { continuableSegments, ContinuationStart, ContinuationTracker } from './ContinuationTracker';
 import { PanelController } from './PanelController';
 import { Log } from './Log';
 
 const DOUBLE_TAP_MS: number = 300;
+// 拖动键盘高度时两次调整面板窗口的最短间隔，每次调整都要跨进程重新排布窗口
+const HEIGHT_PREVIEW_INTERVAL_MS: number = 60;
 const CONTEXT_TAIL_LENGTH: number = 8;
 const CLIPBOARD_LIMIT: number = 30;
 const CLIPBOARD_TEXT_LIMIT: number = 5000;
 const PHRASE_LIMIT: number = 100;
 // 一次按键的组词耗时超过这个毫秒数时记一条日志，便于发现词库搜索退化
 const SLOW_COMPOSE_MS: number = 25;
+// 按住删除键时手指上移超过上滑阈值的这个比例，就算开始上滑。这次按住不再连续删除，手指回落也不恢复，
+// 按住时的轻微抖动达不到这个距离
+const DELETE_SWIPE_START_PROGRESS: number = 0.3;
+// 删除候选以后撤销提示停留的时间
+const REMOVED_NOTICE_MS: number = 4000;
 
 /**
  * 最近一次清空的撤销内容，只在内存中保留一份。清空拼音时 composition 为按下前的组词快照，清空编辑框时为 undefined。
@@ -123,11 +147,20 @@ export class ImeController {
   private readonly panelController: PanelController = new PanelController();
   private readonly editor: EditorAdapter = new EditorAdapter();
   private readonly composition: CompositionController = new CompositionController();
+  // 相邻两次确认的组合学习：只判断能不能连，记录与提示在 UserLexicon 里
+  private readonly continuation: ContinuationTracker = new ContinuationTracker();
   private readonly layoutStore: LayoutStore = new LayoutStore();
   private readonly clipboard: ClipboardService = new ClipboardService();
   private keyboardController: inputMethodEngine.KeyboardController | undefined = undefined;
   private inputStartTime: number = 0;
+  // 布局校准拖动键盘高度时调整面板窗口的节流状态
+  private heightPreviewTimer: number = -1;
+  private heightPreviewPending: boolean = false;
   private learner: CommitLearner | undefined = undefined;
+  private rules: CandidateRules | undefined = undefined;
+  // 长按菜单要对同一版候选生效，打开时保存这一份快照，候选刷新后随菜单一起失效
+  private menuView: CandidateView | undefined = undefined;
+  private removedTimer: number = -1;
   private readonly rawCandidateProvider: CandidateProvider = new RawCandidateProvider();
   private sessionCounter: number = 0;
   private preferredLang: InputLang = InputLang.ZH;
@@ -135,12 +168,22 @@ export class ImeController {
   private deleteDelayTimer: number = -1;
   private deleteRepeatTimer: number = -1;
   private committedTail: string = '';
+  // 上下文代次与当前上下文的提交者：异步提交失败时，只有代次没前进、且上下文仍属于这次提交才能回退
+  private contextGeneration: number = 0;
+  private contextOwner: number = 0;
+  private commitSequence: number = 0;
   private registered: boolean = false;
   // 编辑框推送的最新全文，只持有引用；密码框与超长文本不保存
   private editorText: string = '';
   // 删除键按下时的全文与组词快照，抬起时释放
   private pressText: string = '';
   private pressComposition: CompositionSnapshot | undefined = undefined;
+  // 按住的删除键触点，以及这次按住期间是否已经连续删除过
+  private deleteTrack: TouchTrack | undefined = undefined;
+  private deleteRepeated: boolean = false;
+  // 这次按住已经开始上滑，以及是否到达过清空的触发线
+  private deleteSwiping: boolean = false;
+  private deleteSwipeReached: boolean = false;
   private clearUndo: ClearUndo | undefined = undefined;
   // 滑动选字的预上屏：同一时间只执行一次，执行期间的新选择合并为最后一次。关闭选字界面时代次加一，旧回调随之失效
   private pickGeneration: number = 0;
@@ -171,8 +214,9 @@ export class ImeController {
     this.stopDeleteRepeat();
     this.releaseEditorText();
     this.composition.reset();
-    this.committedTail = '';
-    this.composition.setPreviousText('');
+    this.setContext('');
+    // 换编辑框以后两次确认不可能再相邻
+    this.continuation.reset();
     // 预上屏属于上一个编辑框，新会话只复位选字状态
     this.resetPick();
     this.resetCursor();
@@ -202,6 +246,7 @@ export class ImeController {
     this.resetCursor();
     this.composition.reset();
     this.syncComposition();
+    this.continuation.reset();
     this.editor.markStopped(sessionId);
     this.learner?.flush();
     Log.info(`inputStop session=${sessionId} sinceStart=${Date.now() - this.inputStartTime}ms`);
@@ -220,12 +265,16 @@ export class ImeController {
     this.cancelPick();
     this.state.clipActionIndex = -1;
     this.state.panelMode = PanelMode.KEYBOARD;
+    this.closeCandidateMenu();
+    this.dismissRemovedNotice();
+    this.continuation.reset();
     this.learner?.flush();
   };
 
   private onSetSubtype = (subtype: InputMethodSubtype): void => {
     const lang = subtype.id === 'en_qwerty' ? InputLang.EN : InputLang.ZH;
     this.preferredLang = lang;
+    this.continuation.break();
     if (!isLatinPattern(this.state.inputPattern)) {
       this.switchLang(lang);
     }
@@ -239,9 +288,16 @@ export class ImeController {
     Log.info(`securityMode=${mode}`);
   };
 
-  // 系统输入框在光标或内容变化时推送全文，这里只替换引用，旧字符串随之可被回收
+  // 系统输入框在光标或内容变化时推送全文，这里只替换引用，旧字符串随之可被回收。
+  // 组合学习只按长度核对自己有没有在别处被改动，不保存也不转发这里的文字
   private onTextChange = (text: string): void => {
     this.editorText = text.length <= CLEAR_TEXT_LIMIT * 2 && !isPasswordPattern(this.state.inputPattern) ? text : '';
+    this.continuation.noteTextLength(text.length);
+  };
+
+  // 选区的变化同样不含文字。自己的插入让光标往后走，其它移动说明两次确认不再紧挨着同一处
+  private onSelectionChange = (oldBegin: number, oldEnd: number, newBegin: number, newEnd: number): void => {
+    this.continuation.noteSelection(oldBegin, oldEnd, newBegin, newEnd);
   };
 
   /**
@@ -266,10 +322,13 @@ export class ImeController {
     this.state.clipboardEnabled = true;
     this.state.fuzzyPinyin = this.layoutStore.loadFlag(KEY_FUZZY_PINYIN, false);
     this.composition.setFuzzy(this.state.fuzzyPinyin);
+    this.state.candidateSize = this.validCandidateSize(this.layoutStore.loadNumber(KEY_CANDIDATE_SIZE,
+      CandidateSize.SMALL));
     this.state.clipboardItems = this.layoutStore.loadList(KEY_CLIPBOARD_ITEMS).slice(0, CLIPBOARD_LIMIT);
     this.state.phraseItems = this.layoutStore.loadList(KEY_PHRASE_ITEMS).slice(0, PHRASE_LIMIT);
     this.state.recentEmoji = this.layoutStore.loadList(KEY_RECENT_EMOJI).slice(0, RECENT_EMOJI_LIMIT);
-    this.clipboard.init(context, () => this.state.clipboardEnabled, (text: string) => this.addClip(text));
+    this.clipboard.init(context, () => this.state.clipboardEnabled,
+      (text: string, fresh: boolean) => this.onClipboardText(text, fresh));
     this.refreshClipboardGrant();
     this.state.isLandscape = this.panelController.detectLandscape();
     this.registerListeners();
@@ -312,6 +371,7 @@ export class ImeController {
     ability.on('securityModeChange', this.onSecurityModeChange);
     inputMethodEngine.getKeyboardDelegate().on('editorAttributeChanged', this.onEditorAttributeChanged);
     inputMethodEngine.getKeyboardDelegate().on('textChange', this.onTextChange);
+    inputMethodEngine.getKeyboardDelegate().on('selectionChange', this.onSelectionChange);
     this.registered = true;
   }
 
@@ -327,6 +387,7 @@ export class ImeController {
     ability.off('securityModeChange', this.onSecurityModeChange);
     inputMethodEngine.getKeyboardDelegate().off('editorAttributeChanged', this.onEditorAttributeChanged);
     inputMethodEngine.getKeyboardDelegate().off('textChange', this.onTextChange);
+    inputMethodEngine.getKeyboardDelegate().off('selectionChange', this.onSelectionChange);
     this.registered = false;
   }
 
@@ -334,6 +395,10 @@ export class ImeController {
     this.state.enterKeyType = attribute.enterKeyType;
     const patternChanged = this.state.inputPattern !== attribute.inputPattern;
     this.state.inputPattern = attribute.inputPattern;
+    if (isNewSession || patternChanged) {
+      // 换了输入框类型或进入密码框，之前的两次确认不再相邻
+      this.continuation.break();
+    }
     if (!isNewSession && !patternChanged) {
       return;
     }
@@ -356,33 +421,128 @@ export class ImeController {
     this.syncComposition();
   }
 
-  setLearner(learner: CommitLearner | undefined): void {
+  setLearner(learner: CommitLearner | undefined, rules: CandidateRules | undefined): void {
     this.learner = learner;
+    this.rules = rules;
+    this.composition.setRules(rules);
+    this.syncComposition();
   }
 
   rawProvider(): CandidateProvider {
     return this.rawCandidateProvider;
   }
 
+  // ---------- 长按候选 ----------
+
   /**
-   * 长按候选删除学习记录，只影响用户词库。
+   * 长按候选弹出菜单，可以把它固定在这串拼音的首位，或者删除。原文候选与词库没加载好时不弹出。
+   * view 是长按时候选栏或自由选词捕获的那一版候选，菜单后续操作只认这一版。
    */
-  forgetCandidate(index: number): void {
-    const candidates = this.composition.getCandidates();
-    const learner = this.learner;
-    if (learner === undefined || index < 0 || index >= candidates.length) {
+  openCandidateMenu(view: CandidateView, anchor: CandidateAnchor): void {
+    const rules = this.rules;
+    const candidate = this.composition.matchCandidate(view);
+    if (rules === undefined || candidate === undefined || candidate.syllables.length === 0) {
       return;
     }
-    const candidate = candidates[index];
-    if (candidate.syllables.length === 0) {
+    const code = this.composition.consumedCodeFor(view);
+    if (code.length === 0) {
       return;
     }
-    const removed = learner.forget(candidate.syllables, candidate.text);
-    if (removed) {
+    this.dismissRemovedNotice();
+    this.menuView = view;
+    this.state.menuAnchor = anchor;
+    this.state.menuPinned = rules.isPinned(code, candidate.text);
+    this.state.menuIndex = view.index;
+  }
+
+  // 候选刷新时一并调用，旧菜单和它指向的那一版候选一起失效
+  closeCandidateMenu(): void {
+    this.menuView = undefined;
+    if (this.state.menuIndex !== -1) {
+      this.state.menuIndex = -1;
+    }
+  }
+
+  // 固定以后候选栏回到第一页，用户能马上看到它排到了首位
+  togglePinCandidate(): void {
+    const view = this.menuView;
+    this.closeCandidateMenu();
+    const rules = this.rules;
+    if (view === undefined || rules === undefined) {
+      return;
+    }
+    const candidate = this.composition.matchCandidate(view);
+    if (candidate === undefined) {
+      return;
+    }
+    const code = this.composition.consumedCodeFor(view);
+    if (code.length === 0) {
+      return;
+    }
+    if (rules.isPinned(code, candidate.text)) {
+      rules.unpin(code);
+    } else {
+      rules.pin(code, candidate.syllables, candidate.text);
+    }
+    this.composition.refresh();
+    this.syncComposition();
+  }
+
+  removeCandidate(): void {
+    const view = this.menuView;
+    this.closeCandidateMenu();
+    const rules = this.rules;
+    if (view === undefined || rules === undefined) {
+      return;
+    }
+    const candidate = this.composition.matchCandidate(view);
+    if (candidate === undefined) {
+      return;
+    }
+    rules.remove(candidate.syllables, candidate.text);
+    this.composition.refresh();
+    this.syncComposition();
+    this.showRemovedNotice(candidate.text);
+  }
+
+  undoRemoveCandidate(): void {
+    const rules = this.rules;
+    this.dismissRemovedNotice();
+    if (rules !== undefined && rules.restoreRemoved()) {
       this.composition.refresh();
       this.syncComposition();
     }
-    this.showStatus(removed ? '已删除该词的学习记录' : '该词没有学习记录');
+  }
+
+  // 撤销提示贴在原来的候选旁边，几秒后或按下任意键时消失
+  private showRemovedNotice(word: string): void {
+    this.clearRemovedTimer();
+    this.state.removedWord = word;
+    this.removedTimer = setTimeout(() => {
+      this.removedTimer = -1;
+      this.state.removedWord = '';
+    }, REMOVED_NOTICE_MS);
+  }
+
+  dismissRemovedNotice(): void {
+    this.clearRemovedTimer();
+    if (this.state.removedWord.length > 0) {
+      this.state.removedWord = '';
+    }
+  }
+
+  private clearRemovedTimer(): void {
+    if (this.removedTimer !== -1) {
+      clearTimeout(this.removedTimer);
+      this.removedTimer = -1;
+    }
+  }
+
+  // 候选栏左右滑动翻页，页数由候选栏按宽度排布后决定
+  setCandidatePage(page: number): void {
+    const next = Math.max(0, page);
+    this.state.candidatePageMotion = next > this.state.candidatePage ? 1 : -1;
+    this.state.candidatePage = next;
   }
 
   private showStatus(message: string): void {
@@ -397,6 +557,7 @@ export class ImeController {
   clearLearning(): void {
     this.learner?.clear();
     TouchModel.get().clear();
+    this.continuation.reset();
     this.composition.refresh();
     this.syncComposition();
     this.showStatus('学习数据已清除');
@@ -406,12 +567,16 @@ export class ImeController {
 
   onKeyDown(track: TouchTrack): void {
     const key = track.rect.key;
+    this.dismissRemovedNotice();
     this.state.pressedKeyIds = this.state.pressedKeyIds.concat([key.id]);
     if (key.type === KeyType.DELETE) {
-      // 按下即删除一个字符，删除前记下全文与组词快照，同一手势上滑清空时据此恢复完整内容
+      // 删除键在松手时才执行，按下时只记下全文与组词快照，上滑清空时据此保存撤销内容
       this.pressText = this.editorText;
       this.pressComposition = this.composition.isComposing() ? this.composition.snapshot() : undefined;
-      this.performDelete();
+      this.deleteTrack = track;
+      this.deleteRepeated = false;
+      this.deleteSwiping = false;
+      this.deleteSwipeReached = false;
       this.startDeleteRepeat();
     }
   }
@@ -434,6 +599,9 @@ export class ImeController {
       this.stopDeleteRepeat();
       this.pressText = '';
       this.pressComposition = undefined;
+      this.deleteTrack = undefined;
+      this.deleteSwiping = false;
+      this.deleteSwipeReached = false;
     }
   }
 
@@ -441,6 +609,8 @@ export class ImeController {
    * 横向滑动移动光标。进入光标模式时收起按下与上滑的效果，之后把每次换算出的字数交给编辑框。
    */
   onCursorSwipe(track: TouchTrack): void {
+    // 移动光标以后两次确认不再落在同一处
+    this.continuation.break();
     if (!this.state.cursorMode) {
       this.state.cursorMode = true;
       this.clearFlick();
@@ -489,9 +659,8 @@ export class ImeController {
   }
 
   onSwipeChanged(track: TouchTrack): void {
-    // 删除键上滑越过阈值的这一次通知只出现一次，立即清空，不等手指抬起
-    if (track.swipeFired && track.rect.key.type === KeyType.DELETE) {
-      this.clearAll();
+    if (track === this.deleteTrack && !track.cancelled) {
+      this.noteDeleteSwipe(track);
     }
     if (track.cancelled || track.progress <= 0) {
       if (this.state.flickKeyId === track.rect.key.id) {
@@ -535,6 +704,9 @@ export class ImeController {
         break;
       case KeyType.ENTER:
         this.inputEnter();
+        break;
+      case KeyType.DELETE:
+        this.releaseDelete(swipeUp);
         break;
       case KeyType.SHIFT:
         if (this.isSeparatorMode()) {
@@ -634,6 +806,8 @@ export class ImeController {
     const enterKeyType = this.state.enterKeyType;
     if (isActionEnter(enterKeyType)) {
       this.dismissUndo();
+      // 发送、搜索等动作键会把焦点交出去，两次确认不可能再相邻
+      this.continuation.break();
       this.editor.sendKeyFunction(enterKeyType);
     } else {
       this.insert('\n');
@@ -664,6 +838,7 @@ export class ImeController {
     if (this.state.lang === lang) {
       return;
     }
+    this.continuation.break();
     if (this.composition.isComposing()) {
       this.finishCommit(this.composition.commitRaw());
     }
@@ -690,8 +865,15 @@ export class ImeController {
     this.state.symbolLocked = !this.state.symbolLocked;
   }
 
-  selectCandidate(index: number): void {
-    const result = this.composition.select(index);
+  /**
+   * 点按候选栏或自由选词里的候选。view 来自渲染时捕获，已经过期时什么都不做，也不重刷候选。
+   */
+  selectCandidate(view: CandidateView): void {
+    const selection = this.composition.selectCandidate(view);
+    if (!selection.accepted) {
+      return;
+    }
+    const result = selection.result;
     if (result !== undefined) {
       this.state.candidatesExpanded = false;
       this.finishCommit(result);
@@ -708,22 +890,77 @@ export class ImeController {
       this.state.candidatesExpanded = !this.state.candidatesExpanded;
       if (this.state.candidatesExpanded) {
         this.state.candidateFilter = CandidateFilter.ALL;
+      } else if (this.composition.getActiveSyllable().length > 0) {
+        this.composition.setSyllableFilter('', 0);
+        this.syncComposition();
       }
       return;
     }
     this.hideKeyboard();
   }
 
+  /**
+   * 筛选只保留当前候选里确实有结果的那一类。选中没有结果的类时直接留在“全部”，
+   * 避免高亮停在一类空列表上；候选刷新后由 syncComposition 再做同样的回退。
+   */
   setCandidateFilter(filter: CandidateFilter): void {
-    this.state.candidateFilter = filter;
+    this.state.candidateFilter = this.allowedFilter(filter);
   }
 
-  closeFreeSelect(): void {
-    this.state.candidatesExpanded = false;
+  /**
+   * 切换自由选词左侧的拼音筛选；再次点击已选中的音节则取消筛选并恢复全部候选。
+   */
+  togglePinyinFilter(syllable: string): void {
+    if (!this.composition.isComposing() || syllable.length === 0) {
+      return;
+    }
+    if (this.state.selectedPinyin === syllable) {
+      this.composition.setSyllableFilter('', 0);
+    } else {
+      const consumed = consumedForSyllable(this.composition.getRawCode(), syllable, this.composition.isFuzzy());
+      this.composition.setSyllableFilter(syllable, consumed);
+    }
+    this.syncComposition();
+  }
+
+  // 筛选只保留当前候选里确实有结果的那一类，空列表直接回到“全部”，不会留下空白页
+  private allowedFilter(filter: CandidateFilter): CandidateFilter {
+    if (filter === CandidateFilter.WORDS) {
+      return this.state.candidatesWords.length > 0 ? CandidateFilter.WORDS : CandidateFilter.ALL;
+    }
+    if (filter === CandidateFilter.CHARS) {
+      return this.state.candidatesChars.length > 0 ? CandidateFilter.CHARS : CandidateFilter.ALL;
+    }
+    return CandidateFilter.ALL;
   }
 
   deleteInFreeSelect(): void {
     this.performDelete();
+  }
+
+  // 自由选词界面的原文：已选的汉字照常上屏，剩下的拼音按原样的字母上屏，与切换中英文时的做法一致
+  commitLettersInFreeSelect(): void {
+    if (!this.composition.isComposing()) {
+      return;
+    }
+    this.state.candidatesExpanded = false;
+    this.finishCommit(this.composition.commitRaw());
+  }
+
+  /**
+   * 自由选词界面的重输：清空拼音和已选的汉字，回到键盘。顶部栏随后显示撤销清空，与上滑删除键清空拼音一样。
+   */
+  retypeInFreeSelect(): void {
+    if (!this.composition.isComposing()) {
+      return;
+    }
+    const snapshot = this.composition.snapshot();
+    this.composition.reset();
+    this.state.candidatesExpanded = false;
+    this.syncComposition();
+    // 组词作废，之前那次确认不再与后面的输入相邻
+    this.continuation.break();
+    this.setUndo({ session: this.editor.currentSession(), text: '', caret: 0, composition: snapshot });
   }
 
   hideKeyboard(): void {
@@ -737,14 +974,15 @@ export class ImeController {
   }
 
   private performDelete(): void {
+    this.continuation.break();
     if (this.composition.isComposing()) {
       this.composition.backspace();
       this.syncComposition();
       return;
     }
+    this.continuation.noteOwnDelete(1);
     this.editor.deleteBeforeCursor(1);
-    this.committedTail = '';
-    this.composition.setPreviousText('');
+    this.setContext('');
   }
 
   /**
@@ -752,6 +990,7 @@ export class ImeController {
    */
   private clearAll(): void {
     this.stopDeleteRepeat();
+    this.continuation.reset();
     const session = this.editor.currentSession();
     const pressComposition = this.pressComposition;
     const pressText = this.pressText;
@@ -774,8 +1013,7 @@ export class ImeController {
         this.showStatus('文字太长，为防止丢失没有清空');
       }
     });
-    this.committedTail = '';
-    this.composition.setPreviousText('');
+    this.setContext('');
   }
 
   // 只保留最近一次清空的内容，新的撤销内容直接替换旧的引用
@@ -797,6 +1035,7 @@ export class ImeController {
   undoClear(): void {
     const undo = this.clearUndo;
     this.dismissUndo();
+    this.continuation.break();
     if (undo === undefined || undo.session !== this.editor.currentSession()) {
       return;
     }
@@ -814,14 +1053,48 @@ export class ImeController {
     });
   }
 
+  /**
+   * 删除键松手：上滑过阈值时清空，否则删除一个字符。按住期间已经连续删除过，松手时不再多删。
+   */
+  /**
+   * 删除键松手：停在触发线以上时清空。上滑到过触发线又退回，说明手指在撤回清空，这次什么也不做；
+   * 没有连续删除过的普通点按删除一个字。
+   */
+  private releaseDelete(swipeUp: boolean): void {
+    if (swipeUp) {
+      this.clearAll();
+    } else if (!this.deleteRepeated && !this.deleteSwipeReached) {
+      this.performDelete();
+    }
+  }
+
+  // 一旦开始上滑，连续删除立即停下，这次按住期间不再恢复，手指回落到起点附近也一样
+  private noteDeleteSwipe(track: TouchTrack): void {
+    if (track.swipeUp) {
+      this.deleteSwipeReached = true;
+    }
+    if (!this.deleteSwiping && (track.swipeUp || track.progress >= DELETE_SWIPE_START_PROGRESS)) {
+      this.deleteSwiping = true;
+      this.stopDeleteRepeat();
+    }
+  }
+
+  // 按住删除键超过长按时间后连续删除，手指正在上滑时暂停，松手时再决定清空还是停止
   private startDeleteRepeat(): void {
     this.stopDeleteRepeat();
     this.deleteDelayTimer = setTimeout(() => {
       this.deleteDelayTimer = -1;
-      this.deleteRepeatTimer = setInterval(() => {
-        this.performDelete();
-      }, REPEAT_INTERVAL_MS);
+      this.repeatDelete();
+      this.deleteRepeatTimer = setInterval(() => this.repeatDelete(), REPEAT_INTERVAL_MS);
     }, LONG_PRESS_MS);
+  }
+
+  private repeatDelete(): void {
+    if (this.deleteSwiping) {
+      return;
+    }
+    this.deleteRepeated = true;
+    this.performDelete();
   }
 
   stopDeleteRepeat(): void {
@@ -844,13 +1117,20 @@ export class ImeController {
 
   private insert(text: string): void {
     this.dismissUndo();
+    // 标点、空格、数字、英文、剪贴板与表情都不属于拼音确认，插进来就隔开了两次确认
+    this.continuation.break();
+    this.continuation.noteOwnInsert(text.length);
     this.editor.insertText(text);
     this.rememberCommitted(text, false);
   }
 
   /**
-   * 组词状态先行复位，编辑框提交成功后产生学习事件，提交失败且期间没有新的组词时恢复快照。
-   * explicit 为 false 表示自动提交，用户没有确认候选，词频与按键偏移都不学习。
+   * 组词状态先行复位，编辑框提交成功后产生学习事件。提交失败时只有仍停在这次提交的会话与组词版本上，
+   * 才把上下文和这次结果恢复成可重试的片段；用户已经开始新的组词时不覆盖。
+   * explicit 为 false 表示自动提交，用户没有确认候选，词频、按键偏移与组合续接都不学习。
+   *
+   * 相邻两次确认的组合学习要等编辑框真正回复成功：verified 只在真回复时置位，
+   * 超时按已送达不算成功，失败时这次提交也不能连上后面，见 ContinuationTracker。
    */
   private finishCommit(result: CommitResult | undefined, explicit: boolean = true): void {
     if (result === undefined) {
@@ -860,32 +1140,92 @@ export class ImeController {
     this.dismissUndo();
     const sessionId = this.editor.currentSession();
     const previousText = this.committedTail;
+    const contextGeneration = this.contextGeneration;
+    const commitId = ++this.commitSequence;
+    // 动作发起时间在按下候选或空格的那一刻取；等异步插入完成再算间隔就不准了
+    const actionTime = Date.now();
     const learn = explicit && !result.raw && this.state.learningEnabled &&
       !isPasswordPattern(this.state.inputPattern);
-    this.rememberCommitted(result.text, !result.raw);
+    this.rememberCommitted(result.text, !result.raw, commitId);
     this.syncComposition();
-    this.editor.insertText(result.text).then((ok: boolean) => {
+    // 提交完成以后组词状态的版本；期间又按键会刷新候选，版本随之前进
+    const revision = this.composition.getRevision();
+    if (learn) {
+      const start: ContinuationStart = {
+        commitId: commitId,
+        session: sessionId,
+        generation: contextGeneration,
+        actionTime: actionTime,
+        // 中间只要有一段不能学习，这次提交整体不参与，见 continuableSegments
+        segments: continuableSegments(result.segments, result.raw)
+      };
+      this.continuation.start(start);
+    } else {
+      // 自动提交、原文、密码框与关闭学习都不参与组合，已经记下的线索随之作废
+      this.continuation.break();
+    }
+    this.continuation.noteOwnInsert(result.text.length);
+    let verified = false;
+    this.editor.insertText(result.text, () => {
+      verified = true;
+    }).then((ok: boolean) => {
       if (sessionId !== this.editor.currentSession()) {
         return;
       }
       if (ok) {
         if (learn) {
+          // 先记词，再按回执把这一次与上一次连成一条续接：前一个词的记录这时一定已经存在
           this.learner?.learn(result, previousText);
           this.learnTaps(result);
+          if (verified) {
+            this.learnContinuation(commitId);
+          }
         }
         return;
       }
-      if (!this.composition.isComposing()) {
-        this.composition.restore({ rawCode: '', alternatives: [], taps: [], segments: result.segments });
-        this.syncComposition();
+      if (learn) {
+        this.continuation.failed(commitId);
+      } else {
+        this.continuation.break();
       }
+      // 这次提交之后又有别的上下文更新或回滚，说明上下文承诺已经换人，不能回退
+      if (this.contextGeneration !== contextGeneration + 1 || this.contextOwner !== commitId) {
+        return;
+      }
+      // 没有更新的上下文：先把上一句恢复成提交前的样子
+      this.setContext(previousText);
+      if (this.composition.isComposing()) {
+        // 用户已经重新输入了拼音：只按正确上下文重算候选，保留正在输入的拼音与已选片段
+        this.composition.refresh();
+        this.syncComposition();
+        return;
+      }
+      // 组词版本仍停在这次提交后的空状态时，才把整次结果放回可提交的片段
+      if (this.composition.getRevision() !== revision) {
+        return;
+      }
+      this.composition.restore({ rawCode: '', alternatives: [], taps: [], segments: result.segments });
+      this.syncComposition();
     });
+  }
+
+  /**
+   * 组合续接按实际成功顺序连接：序号正好接在上一次成功提交后面、上下文只前进一代、时间在窗口内，
+   * 才把两段交给用户词库记成一条续接。上一次没有成功回执时，后面的提交不会跳过它去连更早的一次。
+   */
+  private learnContinuation(commitId: number): void {
+    const pair = this.continuation.verified(commitId);
+    if (pair !== undefined) {
+      this.learner?.learnContinuation(pair.previous, pair.next);
+    }
   }
 
   private learnTaps(result: CommitResult): void {
     const typings: ConfirmedTyping[] = [];
     for (const segment of result.segments) {
-      if (segment.source !== CandidateSource.RAW && segment.syllables.length > 0) {
+      // 学到的组合续接把整串拼音读完却只有一部分音节，按键落点对不上，不参与触点学习
+      if (segment.source !== CandidateSource.RAW && segment.origin !== CandidateOrigin.CONTINUATION &&
+        segment.syllables.length > 0) {
         const typing: ConfirmedTyping = { code: segment.code, syllables: segment.syllables, taps: segment.taps };
         typings.push(typing);
       }
@@ -893,29 +1233,88 @@ export class ImeController {
     TouchModel.get().learn(typings);
   }
 
-  private rememberCommitted(text: string, isChinese: boolean): void {
-    if (!isChinese) {
-      this.committedTail = '';
-      this.composition.setPreviousText('');
-      return;
-    }
-    this.committedTail = text.length > CONTEXT_TAIL_LENGTH ? text.substring(text.length - CONTEXT_TAIL_LENGTH) : text;
-    this.composition.setPreviousText(this.committedTail);
+  // 所有改变上一句上下文的路径都走这里，代次让异步提交失败能判断自己是否还是最新的一次上下文更新
+  private setContext(text: string, owner: number = 0): void {
+    this.contextGeneration++;
+    this.contextOwner = owner;
+    this.committedTail = text;
+    this.composition.setPreviousText(text);
   }
 
+  private rememberCommitted(text: string, isChinese: boolean, owner: number = 0): void {
+    if (!isChinese) {
+      this.setContext('', owner);
+      return;
+    }
+    const tail = text.length > CONTEXT_TAIL_LENGTH ? text.substring(text.length - CONTEXT_TAIL_LENGTH) : text;
+    this.setContext(tail, owner);
+  }
+
+  // 候选刷新以后回到第一页，菜单指向的旧版本也随之失效。
+  // 同一批候选按普通栏、全部、词语、单字四份快照分别排好，界面只消费这里的顺序。
   private syncComposition(): void {
     this.state.preedit = this.composition.preeditText();
+    this.state.preeditChosen = this.composition.chosenText();
+    this.state.candidatePageMotion = 0;
+    this.state.candidatePage = 0;
+    this.closeCandidateMenu();
     const candidates = this.composition.getCandidates();
+    const snapshot = this.composition.getSnapshot();
+    const revision = this.composition.getRevision();
     const views: CandidateView[] = [];
     for (let i = 0; i < candidates.length; i++) {
       const chars = candidates[i].source === CandidateSource.RAW ? 0 : characterCount(candidates[i].text);
-      const view: CandidateView = { index: i, text: candidates[i].text, chars: chars };
+      const view: CandidateView = {
+        index: i,
+        text: candidates[i].text,
+        chars: chars,
+        id: candidates[i].id,
+        consumedCodeLength: candidates[i].consumedCodeLength,
+        revision: revision
+      };
       views.push(view);
     }
-    this.state.candidates = views;
-    if (views.length === 0) {
-      this.state.candidatesExpanded = false;
+    this.state.candidates = this.orderedViews(snapshot.bar, views);
+    this.state.candidatesAll = this.orderedViews(snapshot.all, views);
+    this.state.candidatesWords = this.orderedViews(snapshot.words, views);
+    this.state.candidatesChars = this.orderedViews(snapshot.chars, views);
+    this.state.selectedPinyin = this.composition.getActiveSyllable();
+    const rawCode = this.composition.getRawCode();
+    const nextOptions = rawCode.length > 0 ?
+      extractPinyinOptions(rawCode, this.composition.getBaseCandidates(), this.composition.getBaseSnapshot().all,
+        this.composition.isFuzzy()) : [];
+    if (!this.sameStrings(this.state.pinyinOptions, nextOptions)) {
+      this.state.pinyinOptions = nextOptions;
     }
+    if (this.composition.getBaseCandidates().length === 0) {
+      this.state.candidatesExpanded = false;
+    } else if (this.state.candidatesExpanded && this.state.candidateFilter !== CandidateFilter.ALL) {
+      // 例如先筛选“词语”再退格到只有单字：高亮和网格一起回到“全部”，不会留下空白列表
+      this.state.candidateFilter = this.allowedFilter(this.state.candidateFilter);
+    }
+  }
+
+  private sameStrings(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // 快照里的序号指回候选池，index 与 id 因此保持原样，显示位置由数组先后单独决定
+  private orderedViews(order: number[], views: CandidateView[]): CandidateView[] {
+    const result: CandidateView[] = [];
+    for (const index of order) {
+      if (index >= 0 && index < views.length) {
+        result.push(views[index]);
+      }
+    }
+    return result;
   }
 
   // ---------- 布局档案 ----------
@@ -933,15 +1332,39 @@ export class ImeController {
   }
 
   /**
-   * 拖动滑块期间只刷新预览，松手后再保存并调整面板高度。
+   * 拖动滑块期间刷新预览，松手后再保存。键盘高度需要调整面板窗口，拖动时按固定间隔节流，
+   * 间隔内的最后一次高度在间隔结束时补上，窗口尺寸始终跟上手指。
    */
   previewProfile(orientation: ProfileOrientation, profile: LayoutProfile): void {
     const copy = copyProfile(profile);
+    const previous = orientation === ProfileOrientation.LANDSCAPE ? this.state.landscapeProfile :
+      this.state.portraitProfile;
+    const heightChanged = previous.keyboardHeightVp !== copy.keyboardHeightVp;
     if (orientation === ProfileOrientation.LANDSCAPE) {
       this.state.landscapeProfile = copy;
     } else {
       this.state.portraitProfile = copy;
     }
+    if (!heightChanged) {
+      return;
+    }
+    if (this.heightPreviewTimer !== -1) {
+      this.heightPreviewPending = true;
+      return;
+    }
+    this.applyPreviewHeights();
+  }
+
+  private applyPreviewHeights(): void {
+    this.heightPreviewPending = false;
+    this.panelController.applyHeights(this.state.landscapeProfile.keyboardHeightVp,
+      this.state.portraitProfile.keyboardHeightVp);
+    this.heightPreviewTimer = setTimeout(() => {
+      this.heightPreviewTimer = -1;
+      if (this.heightPreviewPending) {
+        this.applyPreviewHeights();
+      }
+    }, HEIGHT_PREVIEW_INTERVAL_MS);
   }
 
   resetProfile(orientation: ProfileOrientation): void {
@@ -957,6 +1380,7 @@ export class ImeController {
 
   setPanelMode(mode: PanelMode): void {
     this.commitBestIfComposing();
+    this.continuation.break();
     this.state.candidatesExpanded = false;
     if (mode !== PanelMode.CLIPBOARD) {
       this.cancelPick();
@@ -994,6 +1418,17 @@ export class ImeController {
     this.layoutStore.saveFlag(KEY_FUZZY_PINYIN, on);
     this.composition.setFuzzy(on);
     this.syncComposition();
+  }
+
+  setCandidateSize(size: number): void {
+    const valid = this.validCandidateSize(size);
+    this.state.candidateSize = valid;
+    this.layoutStore.saveNumber(KEY_CANDIDATE_SIZE, valid);
+  }
+
+  // 保存的数值损坏或来自更新的版本时回到默认的小号
+  private validCandidateSize(size: number): number {
+    return size === CandidateSize.MEDIUM || size === CandidateSize.LARGE ? size : CandidateSize.SMALL;
   }
 
   // ---------- 表情 ----------
@@ -1061,6 +1496,10 @@ export class ImeController {
     }
     const items = this.state.currentClipItems();
     if (index >= 0 && index < items.length) {
+      // 在面板里用过刚复制的这段文字，候选栏不再重复显示
+      if (items[index] === this.state.clipSuggestion) {
+        this.state.clipSuggestion = '';
+      }
       this.insert(items[index]);
     }
   }
@@ -1260,7 +1699,14 @@ export class ImeController {
       return;
     }
     this.dismissUndo();
+    this.continuation.break();
+    this.continuePickInsert(text, usePreview, previewLength);
     this.rememberCommitted(text, false);
+  }
+
+  // 滑动选字上屏：预览内容是编辑框自己的文字，不属于拼音确认，只核对长度
+  private continuePickInsert(text: string, usePreview: boolean, previewLength: number): void {
+    this.continuation.noteOwnInsert(text.length);
     if (!usePreview) {
       this.editor.insertText(text);
       return;
@@ -1327,16 +1773,50 @@ export class ImeController {
     });
   }
 
-  private addClip(text: string): void {
+  /**
+   * 收录剪贴板文字。新复制的文字同时放到候选栏，打开剪贴板面板时补收的旧文字只进历史。
+   */
+  private onClipboardText(text: string, fresh: boolean): void {
+    const clipped = this.addClip(text);
+    if (fresh) {
+      this.state.clipSuggestion = clipped;
+    }
+  }
+
+  /**
+   * 点按候选栏里刚复制的文字：上屏后从候选栏移除，剪贴板历史保留这一条。
+   */
+  insertClipSuggestion(): void {
+    const text = this.state.clipSuggestion;
+    if (text.length === 0) {
+      return;
+    }
+    this.state.clipSuggestion = '';
+    this.insert(text);
+  }
+
+  /**
+   * 点按候选栏里刚复制的文字右端的关闭键：只从候选栏收起，剪贴板历史保留这一条。
+   */
+  dismissClipSuggestion(): void {
+    this.state.clipSuggestion = '';
+  }
+
+  private addClip(text: string): string {
     const clipped = text.length > CLIPBOARD_TEXT_LIMIT ? text.substring(0, CLIPBOARD_TEXT_LIMIT) : text;
     const items = this.state.clipboardItems.filter((item: string) => item !== clipped);
     items.unshift(clipped);
     this.saveClips(items.slice(0, CLIPBOARD_LIMIT));
+    return clipped;
   }
 
+  // 候选栏里的文字已经不在剪贴板历史中时一并移除，删除或清空的记录不会再从候选栏出现
   private saveClips(items: string[]): void {
     this.state.clipboardItems = items;
     this.layoutStore.saveList(KEY_CLIPBOARD_ITEMS, items);
+    if (this.state.clipSuggestion.length > 0 && items.indexOf(this.state.clipSuggestion) < 0) {
+      this.state.clipSuggestion = '';
+    }
   }
 
   // ---------- 诊断 ----------

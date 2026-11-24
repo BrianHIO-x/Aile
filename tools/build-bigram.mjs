@@ -1,137 +1,146 @@
-// 生成词间搭配表：用基础词库给 tools/lexicon-src/corpus 下的语料切词，统计相邻两个词一起出现的次数。
-// 用法：先运行 build-lexicon.mjs，再用 DevEco 自带 Node 执行 node tools/build-bigram.mjs
-// 输出格式：# 开头为说明行，其余每行为 "前一个词<TAB>后一个词<TAB>次数"。
-// 语料按标点断开，只统计同一段里相邻的两个词。评测句子如果整句出现在语料里，会列出来提醒删掉。
+// 生成词间搭配模型 entry/src/main/resources/rawfile/lexicon/bigram.txt：带回退的二元语言模型。
+// 用法：先运行 count-lccc.mjs 与 build-lexicon.mjs，再用 DevEco 自带 Node 执行 node tools/build-bigram.mjs
+// 计数来自 LCCC 对话语料与本项目手写语料（按 HAND_WEIGHT 倍计入），词的概率取自生成好的词库。
+// 模型：P(后|前) = (次数 - 折扣) / 前词次数，没有记录的组合按 α(前) × P(后) 回退。
+// 引擎给每个词弧计算过 ln P(后)，这里存的是需要额外加上的部分：
+//   有记录的组合  ln P(后|前) - ln P(后)
+//   没有记录      ln α(前)
+// 只保留与回退估计相差足够大的组合，剪掉以后重新计算 α，概率之和仍为 1。
+// LCCC 过滤掉的词（build-lexicon.mjs 写出的 censored.tsv）在语料里从未出现，作为后词时不套用回退扣分。
+// 输出格式：首行 "#aile-bigram<TAB>2<TAB>前词数<TAB>组合数<TAB>量化倍数"，
+//   第二行 "#neutral<TAB>词 词 …"，列出不套用回退扣分的后词，
+//   其余每行 "前词<TAB>lnα<TAB>后词 值 后词 值 …"，数值都乘以量化倍数取整，各行按前词的 UTF-16 编码排序，
+//   引擎用二分查找定位前词。<s> 表示一段话的开头。
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { outDir, requireExternal } from './lexicon-lib.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const lexiconPath = join(root, 'entry', 'src', 'main', 'resources', 'rawfile', 'lexicon', 'base_lexicon.txt');
-const corpusDir = join(root, 'tools', 'lexicon-src', 'corpus');
-const benchPath = join(root, 'tools', 'engine-bench', 'sentences.txt');
-const outPath = join(root, 'entry', 'src', 'main', 'resources', 'rawfile', 'lexicon', 'bigram.txt');
+// 手写语料每句的次数按这个倍数计入
+const HAND_WEIGHT = 20;
+const DISCOUNT = 0.8;
+const MIN_PAIR_COUNT = 3;
+// 有记录的估计与回退估计相差的自然对数至少为 MIN_GAIN，并且次数 × 相差的对数至少为 MIN_WEIGHTED_GAIN，
+// 后者近似这个组合对整体似然的贡献。engine-bench 上，同样三十多万个组合，按贡献剪枝比只按相差剪枝
+// 整句准确率高一个百分点；组合数翻倍到六十万，聊天整句只再高一个百分点，文件大小也翻倍
+const MIN_GAIN = 0.3;
+const MIN_WEIGHTED_GAIN = 80;
+const QUANT = 10;
+const START = '<s>';
+// 过滤词里只列出概率不低于这个值的，约六千个。更少见的词很少出现在整句里，列出来只会拖慢加载
+const MIN_NEUTRAL_PROB = 1e-6;
 
-// 与引擎相同的长词奖励，切词结果与输入时的整句更接近
-const WORD_BONUS_PER_CHAR = 1.0;
-const UNKNOWN_CHAR_SCORE = -20;
-const MAX_WORD_CHARS = 8;
+// ---------- 词的概率 ----------
 
-// 词库格式见 build-lexicon.mjs，只读 “#data” 之后的词条，第三列为词频
-const lexiconText = readFileSync(lexiconPath, 'utf8');
+const lexiconText = readFileSync(join(outDir, 'base_lexicon.txt'), 'utf8');
 const dataStart = lexiconText.indexOf('\n#data\n');
-if (!lexiconText.startsWith('#aile-lexicon\t2\t') || dataStart < 0) {
-  throw new Error('请先运行 build-lexicon.mjs 生成新格式的词库');
-}
-const logTotal = Math.log(Number(lexiconText.substring(0, lexiconText.indexOf('\n')).split('\t')[2]));
-const best = new Map();
-for (const line of lexiconText.substring(dataStart + '\n#data\n'.length).split('\n')) {
+const total = Number(lexiconText.substring(0, lexiconText.indexOf('\n')).split('\t')[2]);
+const wordProb = new Map();
+for (const line of lexiconText.substring(dataStart + 7).split('\n')) {
   const parts = line.split('\t');
-  if (parts.length !== 3) {
-    continue;
-  }
-  const score = Math.log(Number(parts[2])) - logTotal;
-  const previous = best.get(parts[1]);
-  if (previous === undefined || score > previous) {
-    best.set(parts[1], score);
+  if (parts.length === 3) {
+    wordProb.set(parts[1], (wordProb.get(parts[1]) ?? 0) + Number(parts[2]) / total);
   }
 }
 
-function segment(chunk) {
-  const chars = Array.from(chunk);
-  const n = chars.length;
-  const score = new Array(n + 1).fill(Number.NEGATIVE_INFINITY);
-  const back = new Array(n + 1).fill(-1);
-  score[0] = 0;
-  for (let i = 0; i < n; i++) {
-    if (score[i] === Number.NEGATIVE_INFINITY) {
+// ---------- 计数 ----------
+
+function readUnigram(name) {
+  const counts = new Map();
+  let chunks = 0;
+  for (const line of readFileSync(requireExternal(name), 'utf8').split('\n')) {
+    const parts = line.split('\t');
+    if (parts[0] === '#chunks') {
+      chunks = Number(parts[1]);
+    } else if (parts.length === 2 && !parts[0].startsWith('#')) {
+      counts.set(parts[0], Number(parts[1]));
+    }
+  }
+  counts.set(START, chunks);
+  return counts;
+}
+
+const contextCount = new Map();
+for (const [name, weight] of [['lccc_unigram.tsv', 1], ['hand_unigram.tsv', HAND_WEIGHT]]) {
+  for (const [word, count] of readUnigram(name)) {
+    contextCount.set(word, (contextCount.get(word) ?? 0) + weight * count);
+  }
+}
+
+// 前词 → { 后词 → 次数 }
+const pairs = new Map();
+for (const [name, weight] of [['lccc_bigram.tsv', 1], ['hand_bigram.tsv', HAND_WEIGHT]]) {
+  for (const line of readFileSync(requireExternal(name), 'utf8').split('\n')) {
+    const parts = line.split('\t');
+    if (parts.length !== 3 || !wordProb.has(parts[1]) || (parts[0] !== START && !wordProb.has(parts[0]))) {
       continue;
     }
-    for (let len = 1; len <= Math.min(MAX_WORD_CHARS, n - i); len++) {
-      const word = chars.slice(i, i + len).join('');
-      let value = best.get(word);
-      if (value === undefined) {
-        if (len > 1) {
-          continue;
-        }
-        value = UNKNOWN_CHAR_SCORE;
-      }
-      const next = score[i] + value + WORD_BONUS_PER_CHAR * (len - 1);
-      if (next > score[i + len]) {
-        score[i + len] = next;
-        back[i + len] = i;
-      }
+    let row = pairs.get(parts[0]);
+    if (row === undefined) {
+      row = new Map();
+      pairs.set(parts[0], row);
     }
-  }
-  const words = [];
-  let end = n;
-  while (end > 0) {
-    const start = back[end];
-    words.unshift(chars.slice(start, end).join(''));
-    end = start;
-  }
-  return words;
-}
-
-const HAN = /[㐀-鿿]+/g;
-const counts = new Map();
-const chunks = [];
-let sentences = 0;
-let tokens = 0;
-const unknown = new Set();
-for (const name of readdirSync(corpusDir).filter((file) => file.endsWith('.txt')).sort()) {
-  for (const rawLine of readFileSync(join(corpusDir, name), 'utf8').split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (line.length === 0 || line.startsWith('#')) {
-      continue;
-    }
-    sentences++;
-    for (const chunk of line.match(HAN) ?? []) {
-      chunks.push(chunk);
-      const words = segment(chunk);
-      tokens += words.length;
-      for (const word of words) {
-        if (!best.has(word)) {
-          unknown.add(word);
-        }
-      }
-      for (let i = 0; i + 1 < words.length; i++) {
-        const key = `${words[i]}\t${words[i + 1]}`;
-        counts.set(key, (counts.get(key) ?? 0) + 1);
-      }
-    }
+    row.set(parts[1], (row.get(parts[1]) ?? 0) + weight * Number(parts[2]));
   }
 }
 
-// 评测句子不能出现在训练语料里
-const leaks = [];
-for (const rawLine of readFileSync(benchPath, 'utf8').split(/\r?\n/)) {
-  if (rawLine.length === 0 || rawLine.startsWith('#')) {
+// ---------- 估计与剪枝 ----------
+
+function backoffWeight(kept) {
+  let bigramMass = 0;
+  let unigramMass = 0;
+  for (const item of kept) {
+    bigramMass += item.prob;
+    unigramMass += wordProb.get(item.word);
+  }
+  return Math.max(1e-6, 1 - bigramMass) / Math.max(1e-6, 1 - unigramMass);
+}
+
+const out = [];
+let pairTotal = 0;
+let positive = 0;
+for (const previous of Array.from(pairs.keys()).sort()) {
+  const c1 = contextCount.get(previous) ?? 0;
+  if (c1 <= 0) {
     continue;
   }
-  const sentence = rawLine.split('\t')[0];
-  if (chunks.some((chunk) => chunk.includes(sentence))) {
-    leaks.push(sentence);
+  const candidates = [];
+  for (const [word, count] of pairs.get(previous)) {
+    if (count >= MIN_PAIR_COUNT) {
+      candidates.push({ word: word, count: count, prob: (count - DISCOUNT) / c1 });
+    }
   }
-}
-for (const sentence of leaks) {
-  console.log(`提醒 评测句子出现在语料里：${sentence}`);
-}
-if (unknown.size > 0) {
-  console.log(`提醒 词库里没有的单字：${Array.from(unknown).join('')}`);
+  if (candidates.length === 0) {
+    continue;
+  }
+  const initialAlpha = Math.log(backoffWeight(candidates));
+  const kept = candidates.filter((item) => {
+    const gain = Math.abs(Math.log(item.prob) - Math.log(wordProb.get(item.word)) - initialAlpha);
+    return gain >= MIN_GAIN && item.count * gain >= MIN_WEIGHTED_GAIN;
+  });
+  if (kept.length === 0) {
+    continue;
+  }
+  const alpha = Math.log(backoffWeight(kept));
+  kept.sort((a, b) => (a.word < b.word ? -1 : a.word > b.word ? 1 : 0));
+  const values = [];
+  for (const item of kept) {
+    const value = Math.round((Math.log(item.prob) - Math.log(wordProb.get(item.word))) * QUANT);
+    values.push(`${item.word} ${value}`);
+    if (value > 0) {
+      positive++;
+    }
+  }
+  pairTotal += kept.length;
+  out.push(`${previous}\t${Math.round(alpha * QUANT)}\t${values.join(' ')}`);
 }
 
-const rows = Array.from(counts.entries()).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
-const out = [
-  '# 词间搭配表，由 tools/build-bigram.mjs 从 tools/lexicon-src/corpus 生成，请勿手工修改。',
-  `# sentences=${sentences} tokens=${tokens} pairs=${rows.length}`
-];
-for (const [key, count] of rows) {
-  out.push(`${key}\t${count}`);
-}
-const output = out.join('\n') + '\n';
-writeFileSync(outPath, output, 'utf8');
+const neutral = readFileSync(requireExternal('censored.tsv'), 'utf8').split('\n')
+  .filter((word) => (wordProb.get(word) ?? 0) >= MIN_NEUTRAL_PROB);
+const output = `#aile-bigram\t2\t${out.length}\t${pairTotal}\t${QUANT}\n#neutral\t${neutral.join(' ')}\n` +
+  out.join('\n') + '\n';
+writeFileSync(join(outDir, 'bigram.txt'), output, 'utf8');
 const sha256 = createHash('sha256').update(output, 'utf8').digest('hex');
-console.log(`sentences=${sentences} tokens=${tokens} pairs=${rows.length} leaks=${leaks.length} ` +
-  `bytes=${Buffer.byteLength(output, 'utf8')} sha256=${sha256}`);
+console.log(`rows=${out.length} pairs=${pairTotal} positive=${positive} neutral=${neutral.length} ` +
+  `bytes=${Buffer.byteLength(output, 'utf8')} ` +
+  `sha256=${sha256}`);

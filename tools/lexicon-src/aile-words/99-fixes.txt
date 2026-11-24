@@ -4,3 +4,10 @@
 显着 xian zhe
 @set 3000
 显著 xian zhu
+
+# 日常口语里更常用的词，词频按 AOSP 语料的旧平衡明显偏低，调到常用档
+@set 3000
+过期 guo qi
+重置 chong zhi
+夜景 ye jing
+平摊 ping tan

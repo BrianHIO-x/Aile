@@ -39,3 +39,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 词库构建用的外部原始数据，由 tools/fetch-lexicon-sources.mjs 下载
+/tools/lexicon-src/external/

@@ -20,6 +20,17 @@ import { NO_TAP, TouchModel, TouchOffset } from '../../keyboard/TouchModel';
 import { CANDIDATE_BAR_HEIGHT_VP, KEYBOARD_BOTTOM_INSET_VP } from '../../keyboard/LayoutProfile';
 import { KeyCap, KeyIcon } from '../../keyboard/components/KeyCap';
 import { CandidateBar } from '../../keyboard/components/CandidateBar';
+import {
+  CandidateMenu,
+  MENU_HEIGHT_VP,
+  MenuPoint,
+  NOTICE_FONT_VP,
+  NOTICE_PADDING_VP,
+  NOTICE_SPACE_VP,
+  noticeText,
+  popupPoint,
+  RemovedNotice
+} from '../../keyboard/components/CandidateMenu';
 import { ClipboardPanel } from '../../keyboard/components/ClipboardPanel';
 import { EmojiPanel } from '../../keyboard/components/EmojiPanel';
 import { FreeSelectPanel } from '../../keyboard/components/FreeSelectPanel';
@@ -33,7 +44,8 @@ import {
   enterAnimation,
   exitAnimation,
   PANEL_SETTLE_MS,
-  panelTransition
+  panelTransition,
+  popTransition
 } from '../../keyboard/Motion';
 
 const TUNER_MAX_WIDTH_VP: number = 460;
@@ -204,6 +216,9 @@ struct KeyboardPage {
   private keyLabel(rect: KeyRect): string {
     const key = rect.key;
     switch (key.type) {
+      // 中文状态字母键显示大写。英文状态与密码框默认显示小写，开了大写或锁定大写时显示大写，与实际输入的字母一致
+      case KeyType.LETTER:
+        return this.zhSymbols() || this.state.shift !== ShiftState.OFF ? key.label : key.label.toLowerCase();
       case KeyType.PUNCT:
       case KeyType.CHAR:
         return displaySymbol(resolveOutput(key, this.zhSymbols()));
@@ -264,6 +279,9 @@ struct KeyboardPage {
     }
     if (rect.key.type === KeyType.SHIFT && this.isSeparatorMode()) {
       return '分词';
+    }
+    if (rect.key.type === KeyType.PUNCT && !this.zhSymbols()) {
+      return '句点，上滑输入逗号';
     }
     return rect.key.accessibility;
   }
@@ -338,7 +356,7 @@ struct KeyboardPage {
     for (const touch of event.changedTouches) {
       if (touch.type === TouchType.Down) {
         // 移动光标时整块键盘当作触控板，其他手指按下不输入
-        if (this.state.cursorMode) {
+        if (this.state.cursorMode || this.insideNotice(touch.x, touch.y)) {
           continue;
         }
         const track = this.router.down(touch.id, touch.x, touch.y, Date.now());
@@ -353,8 +371,13 @@ struct KeyboardPage {
           this.applyMove(changed);
         }
       } else if (touch.type === TouchType.Up) {
-        // 快速上滑可能没有中间的移动事件，抬起坐标先按移动处理，越过阈值即执行的动作不会丢失
+        // 快速上滑可能没有中间的移动事件，抬起坐标先按移动处理，上滑提示据此跟上手指
         const moved: TouchTrack | undefined = this.router.move(touch.id, touch.x, touch.y, Date.now());
+        const track = this.router.getTrack(touch.id);
+        const press: KeyPress | undefined = this.router.up(touch.id, touch.x, touch.y, Date.now());
+        // 先把字符交给编辑框，再更新按下与上滑的显示状态。
+        // 上滑松手时符号立即上屏，提示块与键帽照常播放收回动效，两者互不等待
+        this.emitPress(press);
         if (moved !== undefined) {
           if (moved.cursorMode) {
             this.controller.onCursorSwipe(moved);
@@ -362,20 +385,8 @@ struct KeyboardPage {
             this.controller.onSwipeChanged(moved);
           }
         }
-        const track = this.router.getTrack(touch.id);
-        const press: KeyPress | undefined = this.router.up(touch.id, touch.x, touch.y, Date.now());
         if (track !== undefined) {
           this.controller.onKeyRelease(track);
-        }
-        if (press !== undefined) {
-          const isLetter = press.key.type === KeyType.LETTER && !press.swipeUp;
-          // 分离与常规布局的拇指姿势不同，按键偏移分开记录
-          const form: string = this.state.currentProfile().form;
-          const model = TouchModel.get();
-          const alternatives = isLetter ? letterAlternatives(this.router.getRects(), press.rect, press.x, press.y,
-            (rect: KeyRect): TouchOffset => model.offsetOf(form, rect)) : [];
-          const tap = isLetter ? TouchModel.sampleOf(form, press.rect, press.x, press.y) : NO_TAP;
-          this.controller.onKeyPress(press.key, press.swipeUp, alternatives, tap);
         }
       } else if (touch.type === TouchType.Cancel) {
         const cancelled = this.router.cancel(touch.id);
@@ -384,6 +395,20 @@ struct KeyboardPage {
         }
       }
     }
+  }
+
+  private emitPress(press: KeyPress | undefined): void {
+    if (press === undefined) {
+      return;
+    }
+    const isLetter = press.key.type === KeyType.LETTER && !press.swipeUp;
+    // 分离与常规布局的拇指姿势不同，按键偏移分开记录
+    const form: string = this.state.currentProfile().form;
+    const model = TouchModel.get();
+    const alternatives = isLetter ? letterAlternatives(this.router.getRects(), press.rect, press.x, press.y,
+      (rect: KeyRect): TouchOffset => model.offsetOf(form, rect)) : [];
+    const tap = isLetter ? TouchModel.sampleOf(form, press.rect, press.x, press.y) : NO_TAP;
+    this.controller.onKeyPress(press.key, press.swipeUp, alternatives, tap);
   }
 
   @Builder
@@ -449,6 +474,58 @@ struct KeyboardPage {
       })
         .position({ x: this.state.keyboardPadding.left, y: CANDIDATE_BAR_HEIGHT_VP })
         .transition(panelTransition())
+    }
+  }
+
+  // 键盘页面的整体尺寸，长按候选的菜单与撤销提示按它收在边缘以内
+  private pageWidth(): number {
+    return this.keysWidth + this.state.keyboardPadding.left + this.state.keyboardPadding.right;
+  }
+
+  private pageHeight(): number {
+    return CANDIDATE_BAR_HEIGHT_VP + this.keysHeight + this.bottomInset();
+  }
+
+  private noticeWidth(): number {
+    const ui = this.getUIContext();
+    const textWidth = (text: string, weight: FontWeight): number => ui.px2vp(ui.getMeasureUtils().measureText({
+      textContent: text,
+      fontSize: NOTICE_FONT_VP,
+      fontWeight: weight
+    }));
+    return textWidth(noticeText(this.state.removedWord), FontWeight.Normal) + NOTICE_SPACE_VP +
+      textWidth('撤销', FontWeight.Medium) + NOTICE_PADDING_VP * 2;
+  }
+
+  private noticePoint(): MenuPoint {
+    return popupPoint(this.state.menuAnchor, this.noticeWidth(), MENU_HEIGHT_VP, this.pageWidth(), this.pageHeight());
+  }
+
+  // 按键区自己处理触摸，盖在上面的撤销提示挡不住它。按在提示上的这一下只算点提示，不算按键
+  private insideNotice(keysX: number, keysY: number): boolean {
+    if (this.state.removedWord.length === 0) {
+      return false;
+    }
+    const point = this.noticePoint();
+    const x = keysX + this.state.keyboardPadding.left;
+    const y = keysY + CANDIDATE_BAR_HEIGHT_VP;
+    return x >= point.x && x <= point.x + this.noticeWidth() && y >= point.y && y <= point.y + MENU_HEIGHT_VP;
+  }
+
+  // 菜单只在打开时挂上，铺满整页挡住按键；撤销提示只占自己那块胶囊，提示以外的地方照常按键
+  @Builder
+  candidatePopups() {
+    if (this.state.menuIndex >= 0) {
+      CandidateMenu({ areaWidth: this.pageWidth(), areaHeight: this.pageHeight() })
+        .width('100%')
+        .height('100%')
+    }
+    if (this.state.removedWord.length > 0) {
+      RemovedNotice({ word: this.state.removedWord })
+        .width(this.noticeWidth())
+        .height(MENU_HEIGHT_VP)
+        .position({ x: this.noticePoint().x, y: this.noticePoint().y })
+        .transition(popTransition())
     }
   }
 
@@ -555,6 +632,7 @@ struct KeyboardPage {
 
       this.immersiveLayer()
       this.swipeLayer()
+      this.candidatePopups()
     }
     .width('100%')
     .height('100%')

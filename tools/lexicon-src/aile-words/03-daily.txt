@@ -205,7 +205,6 @@
 @2
 保质期 bao zhi qi
 生产日期 sheng chan ri qi
-过期 guo qi
 口味 kou wei
 微辣 wei la
 中辣 zhong la

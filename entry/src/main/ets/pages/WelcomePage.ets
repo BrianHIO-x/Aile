@@ -80,7 +80,7 @@ const GESTURES: Gesture[] = [
   { visual: GestureVisual.CLEAR, title: '上滑删除', detail: '清空，可撤销' },
   { visual: GestureVisual.MARK, title: '点 Aile 标志', detail: '表情、剪贴板与常用语' },
   { visual: GestureVisual.CLIP, title: '长按剪贴板', detail: '选字或存为常用语' },
-  { visual: GestureVisual.CANDIDATE, title: '长按候选', detail: '删除学习记录' }
+  { visual: GestureVisual.CANDIDATE, title: '长按候选', detail: '固定首位或删除' }
 ];
 
 /**

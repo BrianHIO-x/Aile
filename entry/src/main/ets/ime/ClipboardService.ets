@@ -12,17 +12,19 @@ export class ClipboardService {
   private context: common.Context | undefined = undefined;
   private subscribed: boolean = false;
   private lastText: string = '';
-  private onText: (text: string) => void = () => {
+  // fresh 为 true 表示这段文字来自一次新的复制，打开剪贴板面板时补收的文字为 false
+  private onText: (text: string, fresh: boolean) => void = () => {
   };
   private canCapture: () => boolean = () => false;
 
+  // 剪贴板更新事件代表一次新的复制，重复复制同一段文字也照常送出
   private updateCallback = (): void => {
     if (this.canCapture() && this.isGranted()) {
-      this.readText().then((text: string) => this.deliver(text));
+      this.readText().then((text: string) => this.deliver(text, true));
     }
   };
 
-  init(context: common.Context, canCapture: () => boolean, onText: (text: string) => void): void {
+  init(context: common.Context, canCapture: () => boolean, onText: (text: string, fresh: boolean) => void): void {
     this.context = context;
     this.canCapture = canCapture;
     this.onText = onText;
@@ -68,7 +70,7 @@ export class ClipboardService {
    */
   captureNow(): void {
     if (this.canCapture() && this.isGranted()) {
-      this.readText().then((text: string) => this.deliver(text));
+      this.readText().then((text: string) => this.deliver(text, false));
     }
   }
 
@@ -89,11 +91,11 @@ export class ClipboardService {
     }
   }
 
-  private deliver(text: string): void {
-    if (text.trim().length === 0 || text === this.lastText) {
+  private deliver(text: string, fresh: boolean): void {
+    if (text.trim().length === 0 || (!fresh && text === this.lastText)) {
       return;
     }
     this.lastText = text;
-    this.onText(text);
+    this.onText(text, fresh);
   }
 }

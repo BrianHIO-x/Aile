@@ -1,5 +1,7 @@
 // 拼音引擎离线评测。词语样本固定在 words.txt，整句样本在 sentences.txt，两份都不参与词库与二元模型的生成。
-// 误触按“手指落在邻键正中”与“落在两键交界附近”两档模拟；另有相邻字母互换、多打一个字母、漏打一个字母三类打错。
+// 另有 LCCC 留出部分抽出的聊天评测集（build-chat-eval.mjs 生成，不入库），存在时一并评测，
+// 并按逐个字母输入的方式统计每次按键的查询耗时。
+// 误触按“手指落在邻键正中”与“落在两键交界附近”两档模拟；另有相邻字母互换、多打一个字母两类打错。
 // 只在 Node 下运行，这里手写少量声明，省去 @types/node 依赖
 declare const require: (name: string) => any;
 declare const process: { argv: string[] };
@@ -64,6 +66,7 @@ const lexPath: string = process.argv[2];
 const label: string = process.argv[3] ?? '';
 const benchDir: string = process.argv[4] ?? '.';
 const bigramPath: string = process.argv[5] ?? '';
+const chatDir: string = process.argv[6] ?? '';
 const text: string = fs.readFileSync(lexPath, 'utf-8');
 const lexicon = new Lexicon();
 lexicon.loadFromText(text);
@@ -100,6 +103,9 @@ function readRows(path: string, textFirst: boolean): Row[] {
 
 const words = readRows(`${benchDir}/words.txt`, false);
 const sentences = readRows(`${benchDir}/sentences.txt`, true);
+const hasChat = chatDir.length > 0 && fs.existsSync(`${chatDir}/chat-sentences.txt`);
+const chatSentences = hasChat ? readRows(`${chatDir}/chat-sentences.txt`, true) : [];
+const chatWords = hasChat ? readRows(`${chatDir}/chat-words.txt`, false) : [];
 
 interface Case { code: string; options: QueryOptions; }
 interface Result { first: number; top3: number; total: number; chars: number; charTotal: number; ms: number; }
@@ -231,21 +237,12 @@ function extraEdit(syllable: string, seed: number): string | undefined {
   return syllable.substring(0, i + 1) + syllable.charAt(i) + syllable.substring(i + 1);
 }
 
-function missingEdit(syllable: string, seed: number): string | undefined {
-  if (syllable.length < 3) {
-    return undefined;
-  }
-  const i = 1 + seed % (syllable.length - 1);
-  return syllable.substring(0, i) + syllable.substring(i + 1);
-}
-
 const full = measure(words, (r) => plainCase(r.syllables.join('')));
 const abbr = measure(words, (r) => plainCase(r.syllables.map((s) => s.charAt(0)).join('')));
 const typoEdge = measure(words, (r) => typoCase(r, true));
 const typoCenter = measure(words, (r) => typoCase(r, false));
 const swap = measure(words, (r) => syllableEdit(r, swapEdit));
 const extra = measure(words, (r) => syllableEdit(r, extraEdit));
-const missing = measure(words, (r) => syllableEdit(r, missingEdit));
 const sentence = measure(sentences, (r) => plainCase(r.syllables.join('')));
 // 奇数行用于调参，偶数行留作验证，调参时只看调参半边，汇报时看验证半边
 const tuneHalf = measure(sentences.filter((r, i) => i % 2 === 0), (r) => plainCase(r.syllables.join('')));
@@ -254,15 +251,38 @@ const checkHalf = measure(sentences.filter((r, i) => i % 2 === 1), (r) => plainC
 const pair = (r: Result): string => `${pct(r.first, r.total)}/${pct(r.top3, r.total)}`;
 console.log(`${label}`);
 console.log(`  词语 全拼 ${pair(full)}  简拼 ${pair(abbr)}  误触-交界 ${pair(typoEdge)}  误触-正中 ${pair(typoCenter)}`);
-console.log(`  打错 互换 ${pair(swap)}  多打 ${pair(extra)}  漏打 ${pair(missing)}`);
+console.log(`  打错 互换 ${pair(swap)}  多打 ${pair(extra)}`);
 console.log(`  整句 ${sentences.length} 句 首位 ${pair(sentence)}  字准确率 ${pct(sentence.chars, sentence.charTotal)}` +
   `  调参半边 ${pct(tuneHalf.first, tuneHalf.total)}  验证半边 ${pct(checkHalf.first, checkHalf.total)}`);
-const totalMs = [full, abbr, typoEdge, typoCenter, swap, extra, missing, sentence].reduce((s, r) => s + r.ms, 0);
+const totalMs = [full, abbr, typoEdge, typoCenter, swap, extra, sentence].reduce((s, r) => s + r.ms, 0);
 console.log(`  用时 ${totalMs}ms，其中整句 ${sentence.ms}ms`);
+
+if (hasChat) {
+  const chatFull = measure(chatWords, (r) => plainCase(r.syllables.join('')));
+  const chatAbbr = measure(chatWords, (r) => plainCase(r.syllables.map((s) => s.charAt(0)).join('')));
+  const chatSentence = measure(chatSentences, (r) => plainCase(r.syllables.join('')));
+  console.log(`  聊天 词语 全拼 ${pair(chatFull)}  简拼 ${pair(chatAbbr)}  整句 ${chatSentences.length} 句 首位 ` +
+    `${pair(chatSentence)}  字准确率 ${pct(chatSentence.chars, chatSentence.charTotal)}`);
+  // 逐个字母输入：每次按键都用当前整串查询一次，与键盘上打字时的调用方式相同
+  const times: number[] = [];
+  for (const row of chatSentences.slice(0, 300)) {
+    const code = row.syllables.join('');
+    for (let i = 1; i <= code.length; i++) {
+      const made = plainCase(code.substring(0, i));
+      const start = Date.now();
+      engine.query(made.code, '', 60, made.options);
+      times.push(Date.now() - start);
+    }
+  }
+  times.sort((a, b) => a - b);
+  const mean = times.reduce((s, t) => s + t, 0) / times.length;
+  console.log(`  逐键查询 ${times.length} 次 平均 ${mean.toFixed(2)}ms  95% ${times[Math.floor(times.length * 0.95)]}ms` +
+    `  最慢 ${times[times.length - 1]}ms`);
+}
 
 // 传入 --dump 时列出整句首位不对的句子，便于逐句检查
 if (process.argv.indexOf('--dump') >= 0) {
-  for (const row of sentences) {
+  for (const row of sentences.concat(chatSentences.slice(0, 150))) {
     const made = plainCase(row.syllables.join(''));
     const list = engine.query(made.code, '', 60, made.options);
     if (list.length === 0 || list[0].text !== row.word) {

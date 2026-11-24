@@ -76,6 +76,32 @@ export class LayoutStore {
     }
   }
 
+  loadNumber(key: string, fallback: number): number {
+    const store = this.store;
+    if (store === undefined) {
+      return fallback;
+    }
+    try {
+      return store.getSync(key, fallback) as number;
+    } catch (error) {
+      Log.error(`number load failed, code=${(error as BusinessError).code}`);
+      return fallback;
+    }
+  }
+
+  saveNumber(key: string, value: number): void {
+    const store = this.store;
+    if (store === undefined) {
+      return;
+    }
+    try {
+      store.putSync(key, value);
+      store.flush();
+    } catch (error) {
+      Log.error(`number save failed, code=${(error as BusinessError).code}`);
+    }
+  }
+
   /**
    * 字符串列表以 JSON 保存，内容损坏或类型不符时返回空列表。
    */
@@ -112,6 +138,7 @@ export class LayoutStore {
 export const KEY_TOOLBAR_EMOJI: string = 'toolbar_emoji';
 export const KEY_TOOLBAR_CLIPBOARD: string = 'toolbar_clipboard';
 export const KEY_FUZZY_PINYIN: string = 'fuzzy_pinyin';
+export const KEY_CANDIDATE_SIZE: string = 'candidate_size';
 export const KEY_CLIPBOARD_ITEMS: string = 'clipboard_items_v1';
 export const KEY_PHRASE_ITEMS: string = 'phrase_items_v1';
 export const KEY_RECENT_EMOJI: string = 'recent_emoji_v1';

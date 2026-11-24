@@ -204,13 +204,14 @@ export function spaceKey(id: string, weight: number, accessibility: string): Key
   return def;
 }
 
+// 中文状态点按输入逗号、上滑输入句号；英文状态反过来，点按输入句点、上滑输入逗号
 export function punctKey(id: string, weight: number): KeyDef {
   const def: KeyDef = {
     id: id,
     type: KeyType.PUNCT,
-    label: ',',
-    output: ',',
-    swipeUpOutput: '.',
+    label: '.',
+    output: '.',
+    swipeUpOutput: ',',
     zhOutput: '，',
     zhSwipeUpOutput: '。',
     weight: weight,

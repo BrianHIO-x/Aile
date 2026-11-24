@@ -3,13 +3,16 @@ import { ImeController } from '../../ime/ImeController';
 import { ImeState, PanelMode, SettingsTab } from '../../ime/ImeState';
 import { LayoutForm } from '../KeyDefinitions';
 import { snapAnimation } from '../Motion';
-import { AileIcon, HubTile, TILE_SIZE_VP } from './AileControls';
+import { AileIcon, HubTile, SegmentedTabs, TILE_SIZE_VP } from './AileControls';
 
 // 顶部标签分两组：左手区放常用功能与键盘模式，右手区放拼音与工具栏
 export const SETTINGS_LEFT_TABS: string[] = ['常用功能', '键盘模式'];
 export const SETTINGS_RIGHT_TABS: string[] = ['拼音', '工具栏'];
 const SETTINGS_PAGE_COUNT: number = 4;
 const FUZZY_CAPTION: string = '点亮后不区分 z/zh c/ch s/sh n/l f/h r/l，以及 an/ang en/eng in/ing';
+// 顺序与 CandidateSize 的取值一致
+const CANDIDATE_SIZE_ITEMS: string[] = ['小', '中', '大'];
+const SIZE_SETTING_SPACE_VP: number = 8;
 
 // 每个拇指区按 4 列排布磁贴，常规布局整宽按 8 列排布
 const ZONE_COLUMNS: number = 4;
@@ -133,6 +136,31 @@ export struct SettingsHub {
     return result;
   }
 
+  /**
+   * 候选字大小：分离布局下放在右手区并贴右边缘，常规布局下紧跟模糊拼音磁贴。
+   */
+  @Builder
+  candidateSizeSetting() {
+    Column({ space: SIZE_SETTING_SPACE_VP }) {
+      Text('候选字大小')
+        .fontSize(12)
+        .maxFontScale(1.2)
+        .fontColor($r('app.color.key_hint_text'))
+      SegmentedTabs({
+        items: CANDIDATE_SIZE_ITEMS,
+        selected: this.state.candidateSize,
+        itemPadding: 16,
+        select: (index: number) => this.controller.setCandidateSize(index)
+      })
+    }
+    .alignItems(this.split ? HorizontalAlign.End : HorizontalAlign.Start)
+    .width(this.split ? Math.max(0, this.rightWidth - this.keyGap) : 'auto')
+    .position({
+      x: this.split ? this.rightX + this.keyGap / 2 : this.leftEdge() + this.cellPitch(),
+      y: HUB_TOP_VP
+    })
+  }
+
   @Builder
   tilePage(page: number) {
     Stack({ alignContent: Alignment.TopStart }) {
@@ -161,6 +189,7 @@ export struct SettingsHub {
           .fontColor($r('app.color.key_hint_text'))
           .constraintSize({ maxWidth: Math.max(TILE_SIZE_VP, this.leftWidth - this.keyGap) })
           .position({ x: this.leftEdge(), y: HUB_TOP_VP + TILE_SIZE_VP + 14 })
+        this.candidateSizeSetting()
       }
     }
     .width('100%')

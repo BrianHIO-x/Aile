@@ -41,6 +41,13 @@ export enum LexiconStatus {
   FAILED = 'failed'
 }
 
+// 候选栏文字大小，序号与设置页分段标签一一对应
+export enum CandidateSize {
+  SMALL = 0,
+  MEDIUM = 1,
+  LARGE = 2
+}
+
 export enum CandidateFilter {
   ALL = 'all',
   WORDS = 'words',
@@ -48,10 +55,24 @@ export enum CandidateFilter {
 }
 
 export interface CandidateView {
+  // 候选在本次组词版本里的序号
   index: number;
   text: string;
   // 字符数，原文候选记为 0，用于自由选词的词语与单字筛选
   chars: number;
+  // 引擎候选的稳定标识与消耗长度，与 revision 一起防止旧候选事件改到新候选
+  id: string;
+  consumedCodeLength: number;
+  // 生成这个候选的组词版本
+  revision: number;
+}
+
+// 长按的候选在键盘页面里的矩形，单位 vp，候选菜单与撤销提示贴着它弹出
+export interface CandidateAnchor {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 export interface AreaPadding {
@@ -76,9 +97,28 @@ export class ImeState {
   @Trace enterKeyType: number = 0;
   @Trace inputPattern: number = 0;
   @Trace preedit: string = '';
+  // 拼音前面已经选定的汉字，是 preedit 的开头一段
+  @Trace preeditChosen: string = '';
+  // 候选视图：同一批 CandidateView 按四种用途各自排好顺序，index 始终是候选池里的原始序号
   @Trace candidates: CandidateView[] = [];
+  @Trace candidatesAll: CandidateView[] = [];
+  @Trace candidatesWords: CandidateView[] = [];
+  @Trace candidatesChars: CandidateView[] = [];
   @Trace candidatesExpanded: boolean = false;
   @Trace candidateFilter: CandidateFilter = CandidateFilter.ALL;
+  // 自由选词左侧的可选首音节列表与当前选中的拼音筛选（空串表示未筛选）
+  @Trace pinyinOptions: string[] = [];
+  @Trace selectedPinyin: string = '';
+  @Trace candidateSize: number = CandidateSize.SMALL;
+  // 候选栏当前一页，以及翻到这一页的方向：1 为向后，-1 为向前，0 表示候选刚刷新
+  @Trace candidatePage: number = 0;
+  @Trace candidatePageMotion: number = 0;
+  // 长按候选弹出的菜单：候选序号为 -1 表示没有菜单
+  @Trace menuIndex: number = -1;
+  @Trace menuAnchor: CandidateAnchor = { x: 0, y: 0, w: 0, h: 0 };
+  @Trace menuPinned: boolean = false;
+  // 刚删除的候选，撤销提示显示期间不为空
+  @Trace removedWord: string = '';
   @Trace pressedKeyIds: string[] = [];
   // 上滑手势：进行中的按键、进度 0～1、是否已越过触发阈值
   @Trace flickKeyId: string = '';
@@ -108,6 +148,8 @@ export class ImeState {
   @Trace clipboardEnabled: boolean = true;
   @Trace clipboardGranted: boolean = false;
   @Trace clipboardItems: string[] = [];
+  // 刚复制的文字，空闲时显示在候选栏，点按上屏后清空；为空表示没有
+  @Trace clipSuggestion: string = '';
   // 剪贴板面板当前标签页与常用语条目
   @Trace clipTab: number = ClipTab.CLIPBOARD;
   @Trace phraseItems: string[] = [];

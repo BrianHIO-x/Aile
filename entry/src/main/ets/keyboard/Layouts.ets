@@ -247,7 +247,8 @@ function buildSplitSymbols(categoryIndex: number): KeyboardLayout {
     row(0, chars(`${prefix}_d`, symbols.slice(15, 20), 1)),
     row(0, chars(`${prefix}_e`, symbols.slice(20, 25), 1)),
     row(0, chars(`${prefix}_f`, symbols.slice(25, 28), 1).concat([deleteKey(2)])),
-    splitBottomRight(page)
+    // 最下排与字母页一样向中间伸出，空格、锁定键与回车的位置和尺寸都与字母页的空格、中英切换键与回车相同
+    splitBottomRight(page, RIGHT_LETTER_OVERHANG)
   ]);
   const layout: KeyboardLayout = {
     id: `split_symbols_${categoryIndex}`, form: LayoutForm.SPLIT, page: page, panes: [left, right]

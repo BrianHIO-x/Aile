@@ -31,8 +31,6 @@ export class TouchTrack {
   // 上滑进度 0～1，用于键帽内的跟手动画
   progress: number = 0;
   cancelled: boolean = false;
-  // 越过阈值即执行的上滑动作已经触发，之后的移动与抬起不再产生任何动作
-  swipeFired: boolean = false;
   // 横向滑动进入光标模式后，这次触摸只移动光标，抬起时不输入任何内容
   cursorMode: boolean = false;
   // 光标模式下尚未交给编辑框的移动字数，负数向左
@@ -61,20 +59,6 @@ export interface KeyPress {
   rect: KeyRect;
   x: number;
   y: number;
-}
-
-/**
- * 删除键在按下时立即执行，其余按键在抬起时执行。
- */
-export function firesOnDown(key: KeyDef): boolean {
-  return key.type === KeyType.DELETE;
-}
-
-/**
- * 删除键上滑越过阈值的瞬间执行清空，不等手指抬起；字母键与逗号键的上滑仍在抬起时输出。
- */
-export function firesSwipeOnCommit(key: KeyDef): boolean {
-  return key.type === KeyType.DELETE;
 }
 
 function cursorStartDistance(key: KeyDef): number {
@@ -129,7 +113,6 @@ export class TouchRouter {
 
   /**
    * 返回状态发生变化的触点，状态保持不变时返回 undefined。
-   * swipeFired 由 false 变为 true 的那次移动只返回一次，调用方据此执行上滑动作。
    * 进入光标模式的那次移动，以及之后产生光标移动的每次移动，都返回触点，移动字数记在 cursorSteps 中。
    */
   move(pointerId: number, x: number, y: number, time: number): TouchTrack | undefined {
@@ -142,9 +125,6 @@ export class TouchRouter {
     track.lastX = x;
     track.lastY = y;
     track.lastTime = time;
-    if (track.swipeFired) {
-      return undefined;
-    }
     if (track.cursorMode) {
       return this.stepCursor(track, x, Math.abs(x - previousX) / Math.max(1, time - previousTime)) ? track :
         undefined;
@@ -171,12 +151,9 @@ export class TouchRouter {
         track.progress = progress;
         changed = true;
       }
-      if (swipeUp && firesSwipeOnCommit(track.rect.key)) {
-        track.swipeFired = true;
-        return track;
-      }
     }
-    if (distanceToCell(track.rect, x, y) > cancelTolerance(track.rect)) {
+    // 已经触发上滑的按键一直保持到松手，手指滑进候选栏或移得更远也不取消
+    if (!track.swipeUp && distanceToCell(track.rect, x, y) > cancelTolerance(track.rect)) {
       track.cancelled = true;
       changed = true;
     }
@@ -212,7 +189,7 @@ export class TouchRouter {
     }
     this.move(pointerId, x, y, time);
     this.tracks.delete(pointerId);
-    if (track.cancelled || track.swipeFired || track.cursorMode || firesOnDown(track.rect.key)) {
+    if (track.cancelled || track.cursorMode) {
       return undefined;
     }
     const press: KeyPress = {

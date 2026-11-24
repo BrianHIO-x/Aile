@@ -10,6 +10,16 @@ export interface LexiconLoadResult {
 }
 
 /**
+ * 同一个桶里读音完全相同的词条，按概率从高到低排列，共用同一个音节数组。
+ */
+export interface SyllableGroup {
+  // 音节以空格连接
+  key: string;
+  syllables: string[];
+  entries: LexiconEntry[];
+}
+
+/**
  * 索引键中的一个字母：取音节首字母，n 与 r 归入 l，f 归入 h。
  * 模糊音两种读音的词因此落在同一个桶里，查询时再逐个核对读音，关闭模糊音时只多核对几个词条。
  */
@@ -56,22 +66,35 @@ const FORMAT_MARK: string = '#aile-lexicon';
 const FORMAT_VERSION: string = '2';
 const DATA_MARK: string = '#data\n';
 const EMPTY_BUCKET: LexiconEntry[] = [];
+// 查过的索引键缓存起来，个数超过上限时丢掉其中不在索引里的键，已解析的桶保留
+const SLOT_CACHE_LIMIT: number = 40000;
 
-// 一个索引键在数据段里的范围。只是其他键的前缀时范围为空；entries 在第一次查询时才解析
+// 一个索引键在数据段里的范围。只是其他键的前缀时范围为空；词条与分组在第一次查询时才解析
 interface BucketSlot {
   start: number;
   end: number;
   entries: LexiconEntry[] | undefined;
+  // 按读音分组，组的顺序按组内最高的概率排列
+  groups: SyllableGroup[] | undefined;
+  byKey: Map<string, SyllableGroup> | undefined;
 }
+
+const EMPTY_GROUPS: SyllableGroup[] = [];
+
+// 缓存里表示“索引里没有这个键”
+const MISSING_SLOT: BucketSlot = { start: 0, end: 0, entries: undefined, groups: undefined, byKey: undefined };
 
 /**
  * 基础词库，按每个音节首字母组成的键建立索引，桶内按对数概率从高到低排列。
- * 词库文件由构建脚本预先分好桶、排好序并算好对数概率，加载时只读索引，每个桶在第一次查询时才解析，
- * 输入法启动时不必一次解析六万多个词条。索引同时列出全部键的前缀，搜索音节组合时据此剪枝。
+ * 词库文件由构建脚本预先分好桶、排好序并算好对数概率。索引各行按键排序，加载时只保存文本，
+ * 查询某个键时在索引上二分查找，每个桶在第一次查询时才解析，输入法启动时不必解析三万多行索引和十几万个词条。
+ * 索引同时列出全部键的前缀，搜索音节组合时据此剪枝。
  */
 export class Lexicon {
   private slots: Map<string, BucketSlot> = new Map<string, BucketSlot>();
   private text: string = '';
+  private indexStart: number = 0;
+  private indexEnd: number = 0;
   private dataStart: number = 0;
   private logTotal: number = 0;
   private entryCount: number = 0;
@@ -110,34 +133,18 @@ export class Lexicon {
     }
     const total = Number(header[2]);
     const entries = Number(header[3]);
-    const slotCount = Number(header[4]);
     if (!Number.isFinite(total) || total <= 0) {
       return empty;
     }
-    let position = headerEnd + 1;
-    for (let i = 0; i < slotCount; i++) {
-      const lineEnd = text.indexOf('\n', position);
-      if (lineEnd < 0) {
-        this.slots.clear();
-        return empty;
-      }
-      const firstTab = text.indexOf('\t', position);
-      const secondTab = text.indexOf('\t', firstTab + 1);
-      const start = Number(text.substring(firstTab + 1, secondTab));
-      const slot: BucketSlot = {
-        start: start,
-        end: start + Number(text.substring(secondTab + 1, lineEnd)),
-        entries: undefined
-      };
-      this.slots.set(text.substring(position, firstTab), slot);
-      position = lineEnd + 1;
-    }
-    if (!text.startsWith(DATA_MARK, position)) {
-      this.slots.clear();
+    // 索引从第二行开始，到 “#data” 一行为止
+    const markLine = text.indexOf('\n' + DATA_MARK, headerEnd);
+    if (markLine < 0) {
       return empty;
     }
     this.text = text;
-    this.dataStart = position + DATA_MARK.length;
+    this.indexStart = headerEnd + 1;
+    this.indexEnd = markLine + 1;
+    this.dataStart = this.indexEnd + DATA_MARK.length;
     this.logTotal = Math.log(total);
     this.entryCount = entries;
     this.maxSyllableCount = Number(header[5]);
@@ -147,18 +154,39 @@ export class Lexicon {
   }
 
   hasKeyPrefix(prefix: string): boolean {
-    return this.slots.has(prefix);
+    return this.slot(prefix) !== undefined;
   }
 
   lookup(initialsKey: string): LexiconEntry[] {
-    const slot = this.slots.get(initialsKey);
+    const slot = this.parsedSlot(initialsKey);
+    return slot !== undefined && slot.entries !== undefined ? slot.entries : EMPTY_BUCKET;
+  }
+
+  /**
+   * 桶内按读音分组的词条。音节组合含有简拼或没打完的音节时，逐组核对读音，比逐个词条核对少得多。
+   */
+  groups(initialsKey: string): SyllableGroup[] {
+    const slot = this.parsedSlot(initialsKey);
+    return slot !== undefined && slot.groups !== undefined ? slot.groups : EMPTY_GROUPS;
+  }
+
+  /**
+   * 读音完全一致的一组词条，syllableKey 为以空格连接的音节。全是完整音节时直接取出，不必遍历整个桶。
+   */
+  group(initialsKey: string, syllableKey: string): SyllableGroup | undefined {
+    const slot = this.parsedSlot(initialsKey);
+    return slot !== undefined && slot.byKey !== undefined ? slot.byKey.get(syllableKey) : undefined;
+  }
+
+  private parsedSlot(initialsKey: string): BucketSlot | undefined {
+    const slot = this.slot(initialsKey);
     if (slot === undefined || slot.end <= slot.start) {
-      return EMPTY_BUCKET;
+      return undefined;
     }
     if (slot.entries === undefined) {
-      slot.entries = this.parseBucket(slot.start, slot.end);
+      this.parseBucket(slot);
     }
-    return slot.entries;
+    return slot;
   }
 
   find(syllables: string[], word: string): LexiconEntry | undefined {
@@ -171,11 +199,70 @@ export class Lexicon {
     return undefined;
   }
 
-  // 桶内每行为“音节 音节<TAB>词<TAB>词频”，构建时已按词频从高到低排好，这里换算成对数概率
-  private parseBucket(start: number, end: number): LexiconEntry[] {
+  private slot(key: string): BucketSlot | undefined {
+    const cached = this.slots.get(key);
+    if (cached !== undefined) {
+      return cached === MISSING_SLOT ? undefined : cached;
+    }
+    if (this.text.length === 0) {
+      return undefined;
+    }
+    const found = this.findSlot(key);
+    if (this.slots.size >= SLOT_CACHE_LIMIT) {
+      const kept: Map<string, BucketSlot> = new Map<string, BucketSlot>();
+      this.slots.forEach((slot: BucketSlot, name: string) => {
+        if (slot !== MISSING_SLOT) {
+          kept.set(name, slot);
+        }
+      });
+      this.slots = kept;
+    }
+    this.slots.set(key, found !== undefined ? found : MISSING_SLOT);
+    return found;
+  }
+
+  // 索引各行为“键<TAB>起点<TAB>长度”并按键排序，取区间中点所在的行比较，不必预先建立映射
+  private findSlot(key: string): BucketSlot | undefined {
+    const text = this.text;
+    let low = this.indexStart;
+    let high = this.indexEnd;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      const lineStart = text.lastIndexOf('\n', middle - 1) + 1;
+      const firstTab = text.indexOf('\t', lineStart);
+      const lineEnd = text.indexOf('\n', lineStart);
+      if (firstTab < 0 || lineEnd < 0 || firstTab > lineEnd) {
+        return undefined;
+      }
+      const name = text.substring(lineStart, firstTab);
+      if (name === key) {
+        const secondTab = text.indexOf('\t', firstTab + 1);
+        const start = Number(text.substring(firstTab + 1, secondTab));
+        const slot: BucketSlot = {
+          start: start,
+          end: start + Number(text.substring(secondTab + 1, lineEnd)),
+          entries: undefined,
+          groups: undefined,
+          byKey: undefined
+        };
+        return slot;
+      }
+      if (name < key) {
+        low = lineEnd + 1;
+      } else {
+        high = lineStart;
+      }
+    }
+    return undefined;
+  }
+
+  // 桶内每行为“音节 音节<TAB>词<TAB>词频”，构建时已按词频从高到低排好，这里换算成对数概率，同时按读音分组
+  private parseBucket(slot: BucketSlot): void {
     const entries: LexiconEntry[] = [];
-    let position = this.dataStart + start;
-    const limit = this.dataStart + end;
+    const groups: SyllableGroup[] = [];
+    const byKey: Map<string, SyllableGroup> = new Map<string, SyllableGroup>();
+    let position = this.dataStart + slot.start;
+    const limit = this.dataStart + slot.end;
     while (position < limit) {
       let lineEnd = this.text.indexOf('\n', position);
       if (lineEnd < 0 || lineEnd > limit) {
@@ -184,15 +271,26 @@ export class Lexicon {
       const firstTab = this.text.indexOf('\t', position);
       const secondTab = this.text.indexOf('\t', firstTab + 1);
       if (firstTab > position && secondTab > firstTab && secondTab < lineEnd) {
+        const key = this.text.substring(position, firstTab);
+        let group = byKey.get(key);
+        if (group === undefined) {
+          const created: SyllableGroup = { key: key, syllables: key.split(' '), entries: [] };
+          group = created;
+          byKey.set(key, created);
+          groups.push(created);
+        }
         const entry: LexiconEntry = {
-          syllables: this.text.substring(position, firstTab).split(' '),
+          syllables: group.syllables,
           word: this.text.substring(firstTab + 1, secondTab),
           logProb: Math.log(Number(this.text.substring(secondTab + 1, lineEnd))) - this.logTotal
         };
         entries.push(entry);
+        group.entries.push(entry);
       }
       position = lineEnd + 1;
     }
-    return entries;
+    slot.entries = entries;
+    slot.groups = groups;
+    slot.byKey = byKey;
   }
 }

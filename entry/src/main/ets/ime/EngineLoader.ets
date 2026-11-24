@@ -46,15 +46,17 @@ export class EngineLoader {
     }
   }
 
+  /**
+   * 词库、二元模型与学习数据分三步读取，每步之间让出主线程，键盘在加载期间仍能及时响应触摸。
+   */
   private load(context: InputMethodExtensionContext, generation: number): void {
     const controller = ImeController.get();
     this.loadTouchModel(context);
     const startTime = Date.now();
     const lexicon = new Lexicon();
-    const decoder = util.TextDecoder.create('utf-8');
     try {
-      const bytes = context.resourceManager.getRawFileContentSync(BASE_LEXICON_PATH);
-      const text = decoder.decodeToString(bytes);
+      const text = util.TextDecoder.create('utf-8').decodeToString(
+        context.resourceManager.getRawFileContentSync(BASE_LEXICON_PATH));
       const result = lexicon.loadFromText(text);
       Log.info(`lexicon loaded entries=${result.entries} ms=${Date.now() - startTime}`);
     } catch (error) {
@@ -62,25 +64,42 @@ export class EngineLoader {
       controller.setCandidateProvider(controller.rawProvider(), LexiconStatus.MISSING);
       return;
     }
-    if (generation !== this.generation) {
-      return;
-    }
     if (lexicon.size() === 0) {
       controller.setCandidateProvider(controller.rawProvider(), LexiconStatus.FAILED);
       return;
     }
     const engine = new PinyinEngine(lexicon);
-    // 词间搭配表缺失或损坏时照常输入，只是整句不参考搭配
+    setTimeout(() => {
+      if (generation !== this.generation) {
+        return;
+      }
+      this.loadBigram(context, engine);
+      setTimeout(() => {
+        if (generation === this.generation) {
+          this.attachLearning(context, lexicon, engine);
+        }
+      }, 0);
+    }, 0);
+  }
+
+  // 二元模型缺失或损坏时照常输入，只是整句不参考前后词的搭配
+  private loadBigram(context: InputMethodExtensionContext, engine: PinyinEngine): void {
     try {
-      const bigramStart = Date.now();
+      const startTime = Date.now();
       const bigram = new BigramModel();
-      const loaded = bigram.loadFromText(decoder.decodeToString(context.resourceManager.getRawFileContentSync(
-        BIGRAM_PATH)));
-      engine.setBigramModel(bigram);
-      Log.info(`bigram loaded pairs=${loaded.pairs} ms=${Date.now() - bigramStart}`);
+      const loaded = bigram.loadFromText(util.TextDecoder.create('utf-8').decodeToString(
+        context.resourceManager.getRawFileContentSync(BIGRAM_PATH)));
+      if (loaded.pairs > 0) {
+        engine.setBigramModel(bigram);
+      }
+      Log.info(`bigram loaded pairs=${loaded.pairs} ms=${Date.now() - startTime}`);
     } catch (error) {
       Log.warn(`bigram load failed, code=${(error as BusinessError).code}`);
     }
+  }
+
+  private attachLearning(context: InputMethodExtensionContext, lexicon: Lexicon, engine: PinyinEngine): void {
+    const controller = ImeController.get();
     const userLexicon = new UserLexicon();
     userLexicon.attachBase(lexicon);
     const store = new UserLexiconStore(context.filesDir);
@@ -99,7 +118,7 @@ export class EngineLoader {
     this.store = store;
     this.userLexicon = userLexicon;
     engine.setUserModel(userLexicon);
-    controller.setLearner(userLexicon);
+    controller.setLearner(userLexicon, userLexicon);
     controller.setCandidateProvider(engine, LexiconStatus.READY);
   }
 

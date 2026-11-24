@@ -1,18 +1,29 @@
-import { ClipTab, ImeState, LexiconStatus, PanelMode } from '../../ime/ImeState';
+import {
+  CandidateAnchor,
+  CandidateFilter,
+  CandidateView,
+  ClipTab,
+  ImeState,
+  LexiconStatus,
+  PanelMode
+} from '../../ime/ImeState';
 import { countCodePoints } from '../PickText';
 import { ImeController } from '../../ime/ImeController';
-import { allocateBar, BarAllocation, CandidateSlot } from '../CandidateLayout';
+import { allocateBar, CandidateSlot } from '../CandidateLayout';
 import { EMOJI_CATEGORIES, EmojiCategory } from '../EmojiData';
 import { KeyboardPageType } from '../KeyDefinitions';
 import { SYMBOL_CATEGORIES, SymbolCategory } from '../Layouts';
-import { AileIcon, ROUND_BUTTON_SIZE_VP, RoundIconButton, SegmentedTabs } from './AileControls';
+import { AileIcon, iconResource, ROUND_BUTTON_SIZE_VP, RoundIconButton, SegmentedTabs } from './AileControls';
 import { EMOJI_LEFT_TAB_COUNT } from './EmojiPanel';
-import { headerTransition, popTransition } from '../Motion';
+import { headerTransition, popTransition, slideInTransition, snapAnimation } from '../Motion';
 import { SETTINGS_LEFT_TABS, SETTINGS_RIGHT_TABS } from './SettingsHub';
 
 // 顶部栏按钮之间与候选、标签之间保留的最小间距
 const BAR_SPACING_VP: number = 8;
-export const CANDIDATE_FONT_SIZE: number = 19;
+// 候选文字的三档字号，依次为小、中、大
+const CANDIDATE_FONT_SIZES: number[] = [19, 21, 23];
+// 系统字体放大后候选文字的上限，保证最大一档仍能放进候选胶囊
+const CANDIDATE_SCALED_LIMIT_VP: number = 25;
 const CANDIDATE_PADDING_VP: number = 10;
 const CANDIDATE_GAP_VP: number = 4;
 const PREEDIT_HEIGHT_VP: number = 16;
@@ -23,6 +34,58 @@ const SEGMENT_HEIGHT_VP: number = 36;
 const SEGMENT_TRACK_PADDING_VP: number = 3;
 const EMOJI_TAB_PADDING_VP: number = 12;
 const CLIP_TABS: string[] = ['剪贴板', '常用语'];
+const FILTER_TABS: string[] = ['全部', '词语', '单字'];
+const FILTER_TAB_PADDING_VP: number = 14;
+const EXPANDED_PREEDIT_FONT_VP: number = 16;
+// 候选栏里刚复制的文字：胶囊最宽铺满中部区域，右端留出关闭键，文字只取开头一段排版
+const CLIP_CHIP_ICON_VP: number = 18;
+const CLIP_CHIP_SPACE_VP: number = 6;
+const CLIP_CHIP_PADDING_LEFT_VP: number = 10;
+const CLIP_CLOSE_WIDTH_VP: number = 34;
+const CLIP_CLOSE_ICON_VP: number = 16;
+const CLIP_PREVIEW_CHARS: number = 240;
+const SHORTCUT_ICON_VP: number = 24;
+// 候选栏翻页：手指横向拖过这个距离，或者甩动速度超过这个值，松手时翻到相邻一页
+const PAGE_SWIPE_VP: number = 36;
+const PAGE_FLING_VP_PER_S: number = 480;
+// 已经到头时继续拖动，候选只跟着手指移动这个比例
+const PAGE_EDGE_DAMPING: number = 0.3;
+// 候选文字宽度的测量缓存，条目过多时整个清空
+const WIDTH_CACHE_LIMIT: number = 2000;
+
+// 换行与连续空白合成一个空格，整段压成一行预览
+function clipPreview(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > CLIP_PREVIEW_CHARS ? flat.substring(0, CLIP_PREVIEW_CHARS) : flat;
+}
+
+/**
+ * 长按手势所在候选在键盘页面里的矩形。
+ */
+export function anchorOf(event: GestureEvent): CandidateAnchor {
+  const area = event.target.area;
+  const anchor: CandidateAnchor = {
+    x: Number(area.globalPosition.x ?? 0),
+    y: Number(area.globalPosition.y ?? 0),
+    w: Number(area.width),
+    h: Number(area.height)
+  };
+  return anchor;
+}
+
+// 候选栏的一页：排好位置的候选，连同渲染时捕获的那一版候选对象与它在本栏的顺序
+interface CandidateEntry {
+  slot: CandidateSlot;
+  candidate: CandidateView;
+  // 在普通栏排序里的显示位置，0 是首选；与候选池里的 index 无关
+  position: number;
+}
+
+interface BarPage {
+  left: CandidateEntry[];
+  right: CandidateEntry[];
+  next: number;
+}
 
 enum ShortcutId {
   EMOJI = 'emoji',
@@ -133,31 +196,100 @@ export struct CandidateBar {
   @Param anchorI: number = 0;
   @Param anchorO: number = 0;
   @Param anchorP: number = 0;
+  // 翻页拖动时候选跟着手指的横向位移
+  @Local dragX: number = 0;
   private controller: ImeController = ImeController.get();
+  private widthCache: Map<string, number> = new Map<string, number>();
+  private widthCacheFont: number = 0;
 
-  private candidateWidth(text: string): number {
+  private candidateFontSize(): number {
+    const size = this.state.candidateSize;
+    return size >= 0 && size < CANDIDATE_FONT_SIZES.length ? CANDIDATE_FONT_SIZES[size] : CANDIDATE_FONT_SIZES[0];
+  }
+
+  // 同一个词在相邻几次按键里反复出现，测过的宽度按文字缓存，字号变了整个作废
+  private candidateWidth(text: string, fontSize: number): number {
+    if (this.widthCacheFont !== fontSize || this.widthCache.size > WIDTH_CACHE_LIMIT) {
+      this.widthCache.clear();
+      this.widthCacheFont = fontSize;
+    }
+    const cached = this.widthCache.get(text);
+    if (cached !== undefined) {
+      return cached;
+    }
     const ui = this.getUIContext();
     const textWidth = ui.px2vp(ui.getMeasureUtils().measureText({
       textContent: text,
-      fontSize: CANDIDATE_FONT_SIZE
+      fontSize: fontSize
     }));
-    return textWidth + CANDIDATE_PADDING_VP * 2;
+    const width = textWidth + CANDIDATE_PADDING_VP * 2;
+    this.widthCache.set(text, width);
+    return width;
   }
 
-  @Computed
-  get allocation(): BarAllocation {
+  // 从 start 起按宽度排出一页：先填左手区，放不下的转入右手区
+  private pageFrom(start: number): BarPage {
+    const candidates = this.state.candidates;
     const widths: number[] = [];
     const limit = Math.max(this.leftWidth, 0) + Math.max(this.rightWidth, 0);
+    const fontSize = this.candidateFontSize();
     let total = 0;
-    for (const candidate of this.state.candidates) {
-      const width = this.candidateWidth(candidate.text);
+    for (let i = start; i < candidates.length; i++) {
+      const width = this.candidateWidth(candidates[i].text, fontSize);
       widths.push(width);
       total += width + CANDIDATE_GAP_VP;
       if (total > limit) {
         break;
       }
     }
-    return allocateBar(widths, this.leftWidth, this.rightWidth, CANDIDATE_GAP_VP);
+    const allocation = allocateBar(widths, this.leftWidth, this.rightWidth, CANDIDATE_GAP_VP);
+    const placed = allocation.left.length + allocation.right.length;
+    const page: BarPage = {
+      left: this.entriesOf(allocation.left, start),
+      right: this.entriesOf(allocation.right, start),
+      // 两侧键区都放不下候选时没有下一页可翻，next 直接停在候选总数，不在原位反复翻页
+      next: placed > 0 ? start + placed : this.state.candidates.length
+    };
+    return page;
+  }
+
+  // 布局只给出页内序号，这里同时捕获当前这一版候选对象，点按与长按不再回头查候选数组
+  private entriesOf(slots: CandidateSlot[], start: number): CandidateEntry[] {
+    const entries: CandidateEntry[] = [];
+    for (const slot of slots) {
+      const position = start + slot.index;
+      if (position >= 0 && position < this.state.candidates.length) {
+        const moved: CandidateSlot = { index: slot.index, x: slot.x, width: slot.width };
+        const entry: CandidateEntry = {
+          slot: moved,
+          candidate: this.state.candidates[position],
+          position: position
+        };
+        entries.push(entry);
+      }
+    }
+    return entries;
+  }
+
+  /**
+   * 当前一页的候选。每一页都接着上一页排，翻到第几页就从第一页往后排几次，测过的宽度都有缓存。
+   * 每页至少放下一个候选，页码超过最后一页时停在最后一页。
+   */
+  @Computed
+  get page(): BarPage {
+    let page = this.pageFrom(0);
+    for (let p = 0; p < this.state.candidatePage && page.next < this.state.candidates.length; p++) {
+      page = this.pageFrom(page.next);
+    }
+    return page;
+  }
+
+  private canPagePrev(): boolean {
+    return this.state.candidatePage > 0;
+  }
+
+  private canPageNext(): boolean {
+    return this.page.next < this.state.candidates.length;
   }
 
   // ---------- 位置 ----------
@@ -204,58 +336,204 @@ export struct CandidateBar {
     return Math.max(0, this.barHeight - PREEDIT_HEIGHT_VP - CANDIDATE_PILL_INSET_VP * 2);
   }
 
+  @Styles
+  candidateNormal() {
+    .opacity(1)
+  }
+
+  @Styles
+  candidatePressed() {
+    .opacity(0.5)
+  }
+
+  // 翻页时新一页沿翻页方向滑入；打字刷新候选时直接替换，不做动画
+  private flipTransition(): TransitionEffect {
+    const motion = this.state.candidatePageMotion;
+    return motion === 0 ? TransitionEffect.IDENTITY : slideInTransition(motion);
+  }
+
+  // 键里带上候选版本与标识，同一位置换了候选时子项会重建，事件闭包不会停在上一个候选上
+  private slotKey(entry: CandidateEntry): string {
+    return `${this.state.candidatePage}_${entry.position}_${entry.candidate.revision}_${entry.candidate.id}_` +
+      `${entry.slot.x.toFixed(1)}_${entry.slot.width.toFixed(1)}`;
+  }
+
   @Builder
-  candidateItem(slot: CandidateSlot) {
-    if (slot.index < this.state.candidates.length) {
-      Text(this.state.candidates[slot.index].text)
-        .fontSize(CANDIDATE_FONT_SIZE)
-        .fontWeight(slot.index === 0 ? FontWeight.Medium : FontWeight.Normal)
-        .maxFontScale(1.2)
-        .maxLines(1)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .fontColor(slot.index === 0 ? $r('app.color.kb_accent') : $r('app.color.key_text'))
-        .textAlign(TextAlign.Center)
-        .width(slot.width)
-        .height(this.pillHeight())
-        .borderRadius(CANDIDATE_PILL_RADIUS_VP)
-        .backgroundColor(slot.index === 0 ? $r('app.color.kb_candidate_pill') : Color.Transparent)
-        .position({ x: slot.x, y: CANDIDATE_PILL_INSET_VP })
-        .accessibilityText(`候选 ${slot.index + 1}`)
-        .onClick(() => this.controller.selectCandidate(slot.index))
-        .gesture(LongPressGesture({ repeat: false })
-          .onAction(() => this.controller.forgetCandidate(slot.index)))
+  candidateItem(entry: CandidateEntry) {
+    Text(entry.candidate.text)
+      .fontSize(this.candidateFontSize())
+      .fontWeight(entry.position === 0 ? FontWeight.Medium : FontWeight.Normal)
+      .maxFontScale(Math.min(1.2, CANDIDATE_SCALED_LIMIT_VP / this.candidateFontSize()))
+      .maxLines(1)
+      .textOverflow({ overflow: TextOverflow.Ellipsis })
+      .fontColor(entry.position === 0 ? $r('app.color.kb_accent') : $r('app.color.key_text'))
+      .textAlign(TextAlign.Center)
+      .width(entry.slot.width)
+      .height(this.pillHeight())
+      .borderRadius(CANDIDATE_PILL_RADIUS_VP)
+      .backgroundColor(entry.position === 0 ? $r('app.color.kb_candidate_pill') : Color.Transparent)
+      .stateStyles({ normal: this.candidateNormal, pressed: this.candidatePressed })
+      .position({ x: entry.slot.x, y: CANDIDATE_PILL_INSET_VP })
+      .accessibilityText(`候选 ${entry.position + 1}，${entry.candidate.text}`)
+      .onClick(() => this.controller.selectCandidate(entry.candidate))
+      .gesture(LongPressGesture({ repeat: false })
+        .onAction((event: GestureEvent) => this.controller.openCandidateMenu(entry.candidate, anchorOf(event))))
+      .transition(this.flipTransition())
+  }
+
+  // 两组候选连同中间的空白合成一条拖动区域，左右手都能翻页
+  private stripStart(): number {
+    return this.leftStart;
+  }
+
+  private stripWidth(): number {
+    const end = this.rightWidth > 0 ? this.rightStart + this.rightWidth : this.leftStart + this.leftWidth;
+    return Math.max(0, end - this.leftStart);
+  }
+
+  private onPageDrag(offsetX: number): void {
+    const blocked = (offsetX > 0 && !this.canPagePrev()) || (offsetX < 0 && !this.canPageNext());
+    this.dragX = blocked ? offsetX * PAGE_EDGE_DAMPING : offsetX;
+  }
+
+  // 甩得够快按甩动方向翻页，慢慢拖时按拖过的距离判断；到头或距离不够就弹回原位
+  private onPageRelease(offsetX: number, velocityX: number): void {
+    const fling = Math.abs(velocityX) >= PAGE_FLING_VP_PER_S;
+    const forward = fling ? velocityX < 0 : offsetX <= -PAGE_SWIPE_VP;
+    const backward = fling ? velocityX > 0 : offsetX >= PAGE_SWIPE_VP;
+    if (forward && this.canPageNext()) {
+      this.dragX = 0;
+      this.controller.setCandidatePage(this.state.candidatePage + 1);
+    } else if (backward && this.canPagePrev()) {
+      this.dragX = 0;
+      this.controller.setCandidatePage(this.state.candidatePage - 1);
+    } else {
+      this.settlePage();
     }
+  }
+
+  private settlePage(): void {
+    this.getUIContext().animateTo(snapAnimation(), () => {
+      this.dragX = 0;
+    });
+  }
+
+  // 每组候选只在自己的拇指区里滑动，拖出区域的部分裁掉
+  @Builder
+  candidateGroup(right: boolean) {
+    Stack({ alignContent: Alignment.TopStart }) {
+      Stack({ alignContent: Alignment.TopStart }) {
+        ForEach(right ? this.page.right : this.page.left, (entry: CandidateEntry) => {
+          this.candidateItem(entry)
+        }, (entry: CandidateEntry) => this.slotKey(entry))
+      }
+      .width('100%')
+      .height('100%')
+      .translate({ x: this.dragX })
+    }
+    .width(right ? this.rightWidth : this.leftWidth)
+    .height(this.barHeight - PREEDIT_HEIGHT_VP)
+    .position({ x: (right ? this.rightStart : this.leftStart) - this.stripStart(), y: 0 })
+    .clip(true)
+  }
+
+  // 拼音行：已经选定的汉字用正文颜色，后面还没选的拼音用提示颜色
+  @Builder
+  preeditLine() {
+    Text() {
+      Span(this.state.preeditChosen)
+        .fontColor($r('app.color.key_text'))
+      Span(this.state.preedit.substring(this.state.preeditChosen.length))
+        .fontColor($r('app.color.key_hint_text'))
+    }
+    .fontSize(12)
+    .maxFontScale(1.1)
+    .height(PREEDIT_HEIGHT_VP)
+    .maxLines(1)
+    .position({ x: this.leftStart + CANDIDATE_PADDING_VP, y: 0 })
+  }
+
+  private filterTabIndex(): number {
+    if (this.state.candidateFilter === CandidateFilter.WORDS) {
+      return 1;
+    }
+    if (this.state.candidateFilter === CandidateFilter.CHARS) {
+      return 2;
+    }
+    return 0;
+  }
+
+  private selectFilterTab(index: number): void {
+    if (index === 1) {
+      this.controller.setCandidateFilter(CandidateFilter.WORDS);
+    } else if (index === 2) {
+      this.controller.setCandidateFilter(CandidateFilter.CHARS);
+    } else {
+      this.controller.setCandidateFilter(CandidateFilter.ALL);
+    }
+  }
+
+  private expandedTabsRight(): number {
+    return this.anchorP - ROUND_BUTTON_SIZE_VP / 2 - BAR_SPACING_VP;
+  }
+
+  private expandedPreeditMaxWidth(): number {
+    return Math.max(0,
+      this.expandedTabsRight() - this.tabsWidth(FILTER_TABS, FILTER_TAB_PADDING_VP) - BAR_SPACING_VP -
+      (this.leftStart + CANDIDATE_PADDING_VP));
+  }
+
+  // 展开自由选词后的顶部栏：左侧放大居中显示当前拼音，右侧紧贴收起按钮放置全部/词语/单字分段标签
+  @Builder
+  expandedHeader() {
+    Text() {
+      Span(this.state.preeditChosen)
+        .fontColor($r('app.color.key_text'))
+      Span(this.state.preedit.substring(this.state.preeditChosen.length))
+        .fontColor($r('app.color.key_hint_text'))
+    }
+    .fontSize(EXPANDED_PREEDIT_FONT_VP)
+    .maxFontScale(1.2)
+    .height(this.barHeight)
+    .maxLines(1)
+    .textOverflow({ overflow: TextOverflow.Ellipsis })
+    .constraintSize({ maxWidth: this.expandedPreeditMaxWidth() })
+    .position({ x: this.leftStart + CANDIDATE_PADDING_VP, y: 0 })
+
+    Row() {
+      SegmentedTabs({
+        items: FILTER_TABS,
+        selected: this.filterTabIndex(),
+        itemPadding: FILTER_TAB_PADDING_VP,
+        select: (index: number) => this.selectFilterTab(index)
+      })
+    }
+    .justifyContent(FlexAlign.End)
+    .width(this.barWidth / 2)
+    .height('100%')
+    .position({ x: this.expandedTabsRight() - this.barWidth / 2, y: 0 })
+    .hitTestBehavior(HitTestMode.Transparent)
   }
 
   @Builder
   candidateRow() {
-    Text(this.state.preedit)
-      .fontSize(12)
-      .maxFontScale(1.1)
-      .fontColor($r('app.color.key_hint_text'))
-      .height(PREEDIT_HEIGHT_VP)
-      .maxLines(1)
-      .position({ x: this.leftStart + CANDIDATE_PADDING_VP, y: 0 })
-    // 自由选词界面打开时候选全部在下方网格中，候选栏只保留拼音
-    if (!this.state.candidatesExpanded) {
-      Stack() {
-        ForEach(this.allocation.left, (slot: CandidateSlot) => {
-          this.candidateItem(slot)
-        }, (slot: CandidateSlot) => `${slot.index}_${slot.x.toFixed(1)}_${slot.width.toFixed(1)}`)
-      }
-      .width(this.leftWidth)
-      .height(this.barHeight - PREEDIT_HEIGHT_VP)
-      .position({ x: this.leftStart, y: PREEDIT_HEIGHT_VP })
-      if (this.rightWidth > 0) {
-        Stack() {
-          ForEach(this.allocation.right, (slot: CandidateSlot) => {
-            this.candidateItem(slot)
-          }, (slot: CandidateSlot) => `${slot.index}_${slot.x.toFixed(1)}_${slot.width.toFixed(1)}`)
+    if (this.state.candidatesExpanded) {
+      this.expandedHeader()
+    } else {
+      this.preeditLine()
+      Stack({ alignContent: Alignment.TopStart }) {
+        this.candidateGroup(false)
+        if (this.rightWidth > 0) {
+          this.candidateGroup(true)
         }
-        .width(this.rightWidth)
-        .height(this.barHeight - PREEDIT_HEIGHT_VP)
-        .position({ x: this.rightStart, y: PREEDIT_HEIGHT_VP })
       }
+      .width(this.stripWidth())
+      .height(this.barHeight - PREEDIT_HEIGHT_VP)
+      .position({ x: this.stripStart(), y: PREEDIT_HEIGHT_VP })
+      .gesture(PanGesture({ direction: PanDirection.Horizontal, distance: 8 })
+        .onActionUpdate((event: GestureEvent) => this.onPageDrag(event.offsetX))
+        .onActionEnd((event: GestureEvent) => this.onPageRelease(event.offsetX, event.velocityX))
+        .onActionCancel(() => this.settlePage()))
     }
   }
 
@@ -272,11 +550,14 @@ export struct CandidateBar {
       .position({ x: this.buttonX(this.anchorQ), y: this.buttonY() })
   }
 
+  // 快捷入口与右上角圆形按钮、撤销清空按钮同为灰底，高度一致
   @Builder
   shortcutButtons() {
     ForEach(this.shortcuts(), (slot: ShortcutSlot) => {
       RoundIconButton({
         icon: slot.id === ShortcutId.EMOJI ? AileIcon.EMOJI : AileIcon.CLIPBOARD,
+        iconSize: SHORTCUT_ICON_VP,
+        filled: true,
         accessibility: slot.id === ShortcutId.EMOJI ? '表情' : '剪贴板',
         action: () => {
           if (slot.id === ShortcutId.EMOJI) {
@@ -301,6 +582,74 @@ export struct CandidateBar {
       .width(this.middleWidth())
       .height('100%')
       .position({ x: this.middleLeft(), y: 0 })
+  }
+
+  @Styles
+  chipNormal() {
+    .opacity(1)
+  }
+
+  @Styles
+  chipPressed() {
+    .opacity(0.6)
+  }
+
+  // 文字最宽能用的部分：中部区域减去剪贴板图标、左侧留白和右端关闭键
+  private clipTextMaxWidth(): number {
+    return Math.max(0, this.middleWidth() - CLIP_CHIP_PADDING_LEFT_VP - CLIP_CHIP_ICON_VP - CLIP_CHIP_SPACE_VP * 2 -
+      CLIP_CLOSE_WIDTH_VP);
+  }
+
+  // 刚复制的文字：紧跟 Aile 标志，左手拇指点按即上屏，文字放不下时铺满中部区域，点按右端关闭键收起
+  @Builder
+  clipChip() {
+    Row() {
+      Row({ space: CLIP_CHIP_SPACE_VP }) {
+        Image(iconResource(AileIcon.CLIPBOARD, false))
+          .width(CLIP_CHIP_ICON_VP)
+          .height(CLIP_CHIP_ICON_VP)
+          .objectFit(ImageFit.Contain)
+          .draggable(false)
+        Text(clipPreview(this.state.clipSuggestion))
+          .fontSize(15)
+          .maxFontScale(1.2)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontColor($r('app.color.key_text'))
+          .constraintSize({ maxWidth: this.clipTextMaxWidth() })
+        Stack() {
+          Image(iconResource(AileIcon.CLOSE, false))
+            .width(CLIP_CLOSE_ICON_VP)
+            .height(CLIP_CLOSE_ICON_VP)
+            .objectFit(ImageFit.Contain)
+            .opacity(0.6)
+            .draggable(false)
+        }
+        .width(CLIP_CLOSE_WIDTH_VP)
+        .height(ROUND_BUTTON_SIZE_VP)
+        .accessibilityText('收起刚复制的文字，剪贴板历史保留这一条')
+        .onClick(() => this.controller.dismissClipSuggestion())
+      }
+      .height(ROUND_BUTTON_SIZE_VP)
+      .padding({ left: CLIP_CHIP_PADDING_LEFT_VP })
+      .borderRadius(ROUND_BUTTON_SIZE_VP / 2)
+      .backgroundColor($r('app.color.key_background'))
+      .stateStyles({ normal: this.chipNormal, pressed: this.chipPressed })
+      .accessibilityText('输入刚复制的文字')
+      .onClick(() => this.controller.insertClipSuggestion())
+    }
+    .justifyContent(FlexAlign.Start)
+    .width(this.middleWidth())
+    .height(ROUND_BUTTON_SIZE_VP)
+    .position({ x: this.middleLeft(), y: this.buttonY() })
+    .hitTestBehavior(HitTestMode.Transparent)
+    .transition(popTransition())
+  }
+
+  // 撤销清空只短暂出现，两者同在时让位给撤销按钮，符号页的中部区域放分类标签
+  private showsClipChip(): boolean {
+    return this.state.clipSuggestion.length > 0 && !this.state.clearUndoAvailable &&
+      this.state.page !== KeyboardPageType.SYMBOLS;
   }
 
   // 清空由右手拇指完成，撤销按钮贴在中部区域右端，紧挨快捷入口
@@ -340,7 +689,7 @@ export struct CandidateBar {
       icon: AileIcon.CHEVRON_DOWN,
       rotation: this.state.candidatesExpanded ? 180 : 0,
       filled: true,
-      accessibility: this.state.isComposing() ? '展开自由选词' : '收起键盘',
+      accessibility: this.state.isComposing() ? '展开更多候选' : '收起键盘',
       action: () => this.controller.onCircleButton(),
       longAction: () => this.controller.openSettings()
     })
@@ -691,8 +1040,11 @@ export struct CandidateBar {
         Stack({ alignContent: Alignment.TopStart }) {
           if (this.state.page === KeyboardPageType.SYMBOLS) {
             this.symbolTabs()
-          } else {
+          } else if (!this.showsClipChip()) {
             this.statusLine()
+          }
+          if (this.showsClipChip()) {
+            this.clipChip()
           }
           if (this.state.clearUndoAvailable) {
             this.undoButton()
